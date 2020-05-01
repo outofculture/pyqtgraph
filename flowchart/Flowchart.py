@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
-from ..Qt import QtCore, QtGui, USE_PYSIDE, USE_PYQT5
+from ..Qt import QtCore, QtGui, QT_LIB
 from .Node import *
 from ..pgcollections import OrderedDict
 from ..widgets.TreeWidget import *
 from .. import FileDialog, DataTreeWidget
 
 ## pyside and pyqt use incompatible ui files.
-if USE_PYSIDE:
+if QT_LIB == 'PySide':
     from . import FlowchartTemplate_pyside as FlowchartTemplate
     from . import FlowchartCtrlTemplate_pyside as FlowchartCtrlTemplate
-elif USE_PYQT5:
+elif QT_LIB == 'PySide2':
+    from . import FlowchartTemplate_pyside2 as FlowchartTemplate
+    from . import FlowchartCtrlTemplate_pyside2 as FlowchartCtrlTemplate
+elif QT_LIB == 'PyQt5':
     from . import FlowchartTemplate_pyqt5 as FlowchartTemplate
     from . import FlowchartCtrlTemplate_pyqt5 as FlowchartCtrlTemplate
 else:
@@ -24,6 +27,7 @@ from .. import configfile as configfile
 from .. import dockarea as dockarea
 from . import FlowchartGraphicsView
 from .. import functions as fn
+import six
 
 def strDict(d):
     return dict([(str(k), v) for k, v in d.items()])
@@ -516,7 +520,7 @@ class Flowchart(Node):
             self.fileDialog.fileSelected.connect(self.loadFile)
             return
             ## NOTE: was previously using a real widget for the file dialog's parent, but this caused weird mouse event bugs..
-        fileName = unicode(fileName)
+        fileName = six.text_type(fileName)
         state = configfile.readConfigFile(fileName)
         self.restoreState(state, clear=True)
         self.viewBox.autoRange()
@@ -535,7 +539,7 @@ class Flowchart(Node):
             self.fileDialog.show()
             self.fileDialog.fileSelected.connect(self.saveFile)
             return
-        fileName = unicode(fileName)
+        fileName = six.text_type(fileName)
         configfile.writeConfigFile(self.saveState(), fileName)
         self.sigFileSaved.emit(fileName)
 
@@ -619,7 +623,7 @@ class FlowchartCtrlWidget(QtGui.QWidget):
         self.cwWin.resize(1000,800)
         
         h = self.ui.ctrlList.header()
-        if not USE_PYQT5:
+        if QT_LIB in ['PyQt4', 'PySide']:
             h.setResizeMode(0, h.Stretch)
         else:
             h.setSectionResizeMode(0, h.Stretch)
@@ -659,7 +663,7 @@ class FlowchartCtrlWidget(QtGui.QWidget):
         #self.setCurrentFile(newFile)
         
     def fileSaved(self, fileName):
-        self.setCurrentFile(unicode(fileName))
+        self.setCurrentFile(six.text_type(fileName))
         self.ui.saveBtn.success("Saved.")
         
     def saveClicked(self):
@@ -688,7 +692,7 @@ class FlowchartCtrlWidget(QtGui.QWidget):
         #self.setCurrentFile(newFile)
             
     def setCurrentFile(self, fileName):
-        self.currentFileName = unicode(fileName)
+        self.currentFileName = six.text_type(fileName)
         if fileName is None:
             self.ui.fileNameLabel.setText("<b>[ new ]</b>")
         else:

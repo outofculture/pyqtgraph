@@ -15,9 +15,13 @@ Widget used for displaying 2D or 3D data. Features:
 import os, sys
 import numpy as np
 
-from ..Qt import QtCore, QtGui, USE_PYSIDE
-if USE_PYSIDE:
+from ..Qt import QtCore, QtGui, QT_LIB
+if QT_LIB == 'PySide':
     from .ImageViewTemplate_pyside import *
+elif QT_LIB == 'PySide2':
+    from .ImageViewTemplate_pyside2 import *
+elif QT_LIB == 'PyQt5':
+    from .ImageViewTemplate_pyqt5 import *
 else:
     from .ImageViewTemplate_pyqt import *
     
@@ -744,7 +748,7 @@ class ImageView(QtGui.QWidget):
             if len(xv) < 2:
                 return (0,0)
             totTime = xv[-1] + (xv[-1]-xv[-2])
-            inds = np.argwhere(xv < t)
+            inds = np.argwhere(xv <= t)
             if len(inds) < 1:
                 return (0,t)
             ind = inds[-1,0]

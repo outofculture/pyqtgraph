@@ -1097,7 +1097,7 @@ def pretty(data, indent=''):
     ind2 = indent + "    "
     if isinstance(data, dict):
         ret = indent+"{\n"
-        for k, v in data.iteritems():
+        for k, v in data.items():
             ret += ind2 + repr(k) + ":  " + pretty(v, ind2).strip() + "\n"
         ret += indent+"}\n"
     elif isinstance(data, list) or isinstance(data, tuple):
@@ -1151,7 +1151,22 @@ class ThreadTrace(object):
             for id, frame in sys._current_frames().items():
                 if id == threading.current_thread().ident:
                     continue
-                print("<< thread %d >>" % id)
+
+                # try to determine a thread name
+                try:
+                    name = threading._active.get(id, None)
+                except:
+                    name = None
+                if name is None:
+                    try:
+                        # QThread._names must be manually set by thread creators.
+                        name = QtCore.QThread._names.get(id)
+                    except:
+                        name = None
+                if name is None:
+                    name = "???"
+
+                print("<< thread %d \"%s\" >>" % (id, name))
                 traceback.print_stack(frame)
             print("===============================================\n")
             

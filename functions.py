@@ -12,11 +12,9 @@ import decimal, re
 import ctypes
 import sys, struct
 from .python2_3 import asUnicode, basestring
-from .Qt import QtGui, QtCore, USE_PYSIDE
-from .metaarray import MetaArray
+from .Qt import QtGui, QtCore, QT_LIB
 from . import getConfigOption, setConfigOptions
-from . import debug
-from .reload import getPreviousVersion 
+from . import debug, reload
 from .metaarray import MetaArray
 
 
@@ -387,15 +385,16 @@ def glColor(*args, **kargs):
     return (c.red()/255., c.green()/255., c.blue()/255., c.alpha()/255.)
 
     
-
-def makeArrowPath(headLen=20, tipAngle=20, tailLen=20, tailWidth=3, baseAngle=0):
+def makeArrowPath(headLen=20, tipAngle=20, tailLen=20, tailWidth=3, baseAngle=0, headWidth=None):
     """
     Construct a path outlining an arrow with the given dimensions.
     The arrow points in the -x direction with tip positioned at 0,0.
     If *tipAngle* is supplied (in degrees), it overrides *headWidth*.
     If *tailLen* is None, no tail will be drawn.
     """
-    headWidth = headLen * np.tan(tipAngle * 0.5 * np.pi/180.)
+    if tipAngle is not None:        
+        headWidth = headLen * np.tan(tipAngle * 0.5 * np.pi/180.)
+
     path = QtGui.QPainterPath()
     path.moveTo(0,0)
     path.lineTo(headLen, -headWidth)
@@ -1221,7 +1220,7 @@ def makeQImage(imgData, alpha=None, copy=True, transpose=True):
     if copy is True and copied is False:
         imgData = imgData.copy()
         
-    if USE_PYSIDE:
+    if QT_LIB in ['PySide', 'PySide2']:
         ch = ctypes.c_char.from_buffer(imgData, 0)
         
         # Bug in PySide + Python 3 causes refcount for image data to be improperly 
@@ -1279,7 +1278,7 @@ def imageToArray(img, copy=False, transpose=True):
     """
     fmt = img.format()
     ptr = img.bits()
-    if USE_PYSIDE:
+    if QT_LIB in ['PySide', 'PySide2']:
         arr = np.frombuffer(ptr, dtype=np.ubyte)
     else:
         ptr.setsize(img.byteCount())
@@ -2445,8 +2444,8 @@ def disconnect(signal, slot):
         try:
             signal.disconnect(slot)
             return True
-        except TypeError, RuntimeError:
-            slot = getPreviousVersion(slot)
+        except (TypeError, RuntimeError):
+            slot = reload.getPreviousVersion(slot)
             if slot is None:
                 return False
 

@@ -1,13 +1,15 @@
 import sys, re, os, time, traceback, subprocess
 import pickle
 
-from ..Qt import QtCore, QtGui, USE_PYSIDE, USE_PYQT5
+from ..Qt import QtCore, QtGui, QT_LIB
 from ..python2_3 import basestring
 from .. import exceptionHandling as exceptionHandling
 from .. import getConfigOption
-if USE_PYSIDE:
+if QT_LIB == 'PySide':
     from . import template_pyside as template
-elif USE_PYQT5:
+elif QT_LIB == 'PySide2':
+    from . import template_pyside2 as template
+elif QT_LIB == 'PyQt5':
     from . import template_pyqt5 as template
 else:
     from . import template_pyqt as template
@@ -100,8 +102,9 @@ class ConsoleWidget(QtGui.QWidget):
         
     def runCmd(self, cmd):
         #cmd = str(self.input.lastCmd)
-        self.stdout = sys.stdout
-        self.stderr = sys.stderr
+
+        orig_stdout = sys.stdout
+        orig_stderr = sys.stderr
         encCmd = re.sub(r'>', '&gt;', re.sub(r'<', '&lt;', cmd))
         encCmd = re.sub(r' ', '&nbsp;', encCmd)
         
@@ -123,8 +126,8 @@ class ConsoleWidget(QtGui.QWidget):
                 self.write("</div>\n", html=True)
                 
         finally:
-            sys.stdout = self.stdout
-            sys.stderr = self.stderr
+            sys.stdout = orig_stdout
+            sys.stderr = orig_stderr
             
             sb = self.output.verticalScrollBar()
             sb.setValue(sb.maximum())
@@ -171,7 +174,6 @@ class ConsoleWidget(QtGui.QWidget):
             self.displayException()
             
     def execMulti(self, nextLine):
-        #self.stdout.write(nextLine+"\n")
         if nextLine.strip() != '':
             self.multiline += "\n" + nextLine
             return
@@ -202,8 +204,9 @@ class ConsoleWidget(QtGui.QWidget):
     def write(self, strn, html=False):
         isGuiThread = QtCore.QThread.currentThread() == QtCore.QCoreApplication.instance().thread()
         if not isGuiThread:
-            self.stdout.write(strn)
+            sys.__stdout__.write(strn)
             return
+        sys.__stdout__.write(strn)
         self.output.moveCursor(QtGui.QTextCursor.End)
         if html:
             self.output.textCursor().insertHtml(strn)
@@ -211,10 +214,12 @@ class ConsoleWidget(QtGui.QWidget):
             if self.inCmd:
                 self.inCmd = False
                 self.output.textCursor().insertHtml("</div><br><div style='font-weight: normal; background-color: #FFF; color: black'>")
-                #self.stdout.write("</div><br><div style='font-weight: normal; background-color: #FFF;'>")
             self.output.insertPlainText(strn)
-        #self.stdout.write(strn)
     
+    def fileno(self):
+        # Need to implement this since we temporarily occlude sys.stdout, and someone may be looking for it (faulthandler, for example)
+        return 1
+
     def displayException(self):
         """
         Display the current exception and stack.
@@ -292,8 +297,8 @@ class ConsoleWidget(QtGui.QWidget):
         if editor is None:
             return
         tb = self.currentFrame()
-        lineNum = tb.tb_lineno
-        fileName = tb.tb_frame.f_code.co_filename
+        lineNum = tb.f_lineno
+        fileName = tb.f_code.co_filename
         subprocess.Popen(self.editor.format(fileName=fileName, lineNum=lineNum), shell=True)
         
     def updateSysTrace(self):
