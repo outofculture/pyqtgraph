@@ -42,6 +42,11 @@ class ColorMapWidget(ptree.ParameterTree):
     def restoreState(self, state):
         self.params.restoreState(state)
         
+    def addColorMap(self, name):
+        """Add a new color mapping and return the created parameter.
+        """
+        return self.params.addNew(name)
+
 
 class ColorMapParameter(ptree.types.GroupParameter):
     sigColorMapChanged = QtCore.Signal(object)
@@ -64,7 +69,7 @@ class ColorMapParameter(ptree.types.GroupParameter):
         return item
         
     def fieldNames(self):
-        return self.fields.keys()
+        return list(self.fields.keys())
     
     def setFields(self, fields):
         """
@@ -152,7 +157,7 @@ class ColorMapParameter(ptree.types.GroupParameter):
     def restoreState(self, state):
         if 'fields' in state:
             self.setFields(state['fields'])
-        for itemState in state['items']:
+        for name, itemState in state['items'].items():
             item = self.addNew(itemState['field'])
             item.restoreState(itemState)
         

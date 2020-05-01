@@ -98,6 +98,11 @@ class ImageItem(GraphicsObject):
         axis = 1 if self.axisOrder == 'col-major' else 0
         return self.image.shape[axis]
 
+    def channels(self):
+        if self.image is None:
+            return None
+        return self.image.shape[2] if self.image.ndim == 3 else 1
+
     def boundingRect(self):
         if self.image is None:
             return QtCore.QRectF(0., 0., 0., 0.)
@@ -263,8 +268,9 @@ class ImageItem(GraphicsObject):
             img = self.image
             while img.size > 2**16:
                 img = img[::2, ::2]
-            mn, mx = img.min(), img.max()
-            if mn == mx:
+            mn, mx = np.nanmin(img), np.nanmax(img)
+            # mn and mx can still be NaN if the data is all-NaN
+            if mn == mx or np.isnan(mn) or np.isnan(mx):
                 mn = 0
                 mx = 255
             kargs['levels'] = [mn,mx]
@@ -329,7 +335,7 @@ class ImageItem(GraphicsObject):
             sl = [slice(None)] * data.ndim
             sl[ax] = slice(None, None, 2)
             data = data[sl]
-        return nanmin(data), nanmax(data)
+        return np.nanmin(data), np.nanmax(data)
 
     def updateImage(self, *args, **kargs):
         ## used for re-rendering qimage from self.image.
@@ -348,10 +354,15 @@ class ImageItem(GraphicsObject):
         profile = debug.Profiler()
         if self.image is None or self.image.size == 0:
             return
-        if isinstance(self.lut, collections.Callable):
-            lut = self.lut(self.image)
+        
+        # Request a lookup table if this image has only one channel
+        if self.image.ndim == 2 or self.image.shape[2] == 1:
+            if isinstance(self.lut, collections.Callable):
+                lut = self.lut(self.image)
+            else:
+                lut = self.lut
         else:
-            lut = self.lut
+            lut = None
 
         if self.autoDownsample:
             # reduce dimensions of image based on screen resolution
@@ -369,13 +380,17 @@ class ImageItem(GraphicsObject):
             image = fn.downsample(self.image, xds, axis=axes[0])
             image = fn.downsample(image, yds, axis=axes[1])
             self._lastDownsample = (xds, yds)
+            
+            # Check if downsampling reduced the image size to zero due to inf values.
+            if image.size == 0:
+                return
         else:
             image = self.image
 
         # if the image data is a small int, then we can combine levels + lut
         # into a single lut for better performance
         levels = self.levels
-        if levels is not None and levels.ndim == 1 and image.dtype in (np.ubyte, np.uint16):
+        if lut is not None and levels is not None and levels.ndim == 1 and image.dtype in (np.ubyte, np.uint16):
             if self._effectiveLut is None:
                 eflsize = 2**(image.itemsize*8)
                 ind = np.arange(eflsize)
@@ -395,9 +410,12 @@ class ImageItem(GraphicsObject):
             lut = self._effectiveLut
             levels = None
         
+        # Convert single-channel image to 2D array
+        if image.ndim == 3 and image.shape[-1] == 1:
+            image = image[..., 0]
+        
         # Assume images are in column-major order for backward compatibility
         # (most images are in row-major order)
-        
         if self.axisOrder == 'col-major':
             image = image.transpose((1, 0, 2)[:image.ndim])
         
@@ -430,7 +448,8 @@ class ImageItem(GraphicsObject):
             self.render()
         self.qimage.save(fileName, *args)
 
-    def getHistogram(self, bins='auto', step='auto', targetImageSize=200, targetHistogramSize=500, **kwds):
+    def getHistogram(self, bins='auto', step='auto', perChannel=False, targetImageSize=200, 
+                     targetHistogramSize=500, **kwds):
         """Returns x and y arrays containing the histogram values for the current image.
         For an explanation of the return format, see numpy.histogram().
         
@@ -446,33 +465,51 @@ class ImageItem(GraphicsObject):
           with each bin having an integer width.
         * All other types will have *targetHistogramSize* bins.
         
+        If *perChannel* is True, then the histogram is computed once per channel
+        and the output is a list of the results.
+        
         This method is also used when automatically computing levels.
         """
-        if self.image is None:
-            return None,None
+        if self.image is None or self.image.size == 0:
+            return None, None
         if step == 'auto':
-            step = (int(np.ceil(self.image.shape[0] / targetImageSize)),
-                    int(np.ceil(self.image.shape[1] / targetImageSize)))
+            step = (max(1, int(np.ceil(self.image.shape[0] / targetImageSize))),
+                    max(1, int(np.ceil(self.image.shape[1] / targetImageSize))))
         if np.isscalar(step):
             step = (step, step)
         stepData = self.image[::step[0], ::step[1]]
         
         if bins == 'auto':
+            mn = np.nanmin(stepData)
+            mx = np.nanmax(stepData)
+            if np.isnan(mn) or np.isnan(mx):
+                # the data are all-nan
+                return None, None
             if stepData.dtype.kind in "ui":
-                mn = stepData.min()
-                mx = stepData.max()
-                step = np.ceil((mx-mn) / 500.)
+                # For integer data, we select the bins carefully to avoid aliasing
+                step = max(1, np.ceil((mx-mn) / 500.))
                 bins = np.arange(mn, mx+1.01*step, step, dtype=np.int)
-                if len(bins) == 0:
-                    bins = [mn, mx]
             else:
-                bins = 500
+                # for float data, let numpy select the bins.
+                bins = np.linspace(mn, mx, 500)
+            
+            if len(bins) == 0:
+                bins = [mn, mx]
 
         kwds['bins'] = bins
-        stepData = stepData[np.isfinite(stepData)]
-        hist = np.histogram(stepData, **kwds)
-        
-        return hist[1][:-1], hist[0]
+
+        if perChannel:
+            hist = []
+            for i in range(stepData.shape[-1]):
+                stepChan = stepData[..., i]
+                stepChan = stepChan[np.isfinite(stepChan)]
+                h = np.histogram(stepChan, **kwds)
+                hist.append((h[1][:-1], h[0]))
+            return hist
+        else:
+            stepData = stepData[np.isfinite(stepData)]
+            hist = np.histogram(stepData, **kwds)
+            return hist[1][:-1], hist[0]
 
     def setPxMode(self, b):
         """

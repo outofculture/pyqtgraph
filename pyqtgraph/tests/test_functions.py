@@ -93,6 +93,19 @@ def check_interpolateArray(order):
 
     assert_array_almost_equal(r1, r2)
     
+def test_subArray():
+    a = np.array([0, 0, 111, 112, 113, 0, 121, 122, 123, 0, 0, 0, 211, 212, 213, 0, 221, 222, 223, 0, 0, 0, 0])
+    b = pg.subArray(a, offset=2, shape=(2,2,3), stride=(10,4,1))
+    c = np.array([[[111,112,113], [121,122,123]], [[211,212,213], [221,222,223]]])
+    assert np.all(b == c)
+    
+    # operate over first axis; broadcast over the rest
+    aa = np.vstack([a, a/100.]).T
+    cc = np.empty(c.shape + (2,))
+    cc[..., 0] = c
+    cc[..., 1] = c / 100.
+    bb = pg.subArray(aa, offset=2, shape=(2,2,3), stride=(10,4,1))
+    assert np.all(bb == cc)
     
 def test_subArray():
     a = np.array([0, 0, 111, 112, 113, 0, 121, 122, 123, 0, 0, 0, 211, 212, 213, 0, 221, 222, 223, 0, 0, 0, 0])
@@ -300,7 +313,7 @@ def test_eq():
     
     zeros = [0, 0.0, np.float(0), np.int(0)]
     if sys.version[0] < '3':
-        zeros.append(long(0))
+        zeros.append(np.long(0))
     for i,x in enumerate(zeros):
         for y in zeros[i:]:
             assert eq(x, y)
@@ -344,14 +357,14 @@ def test_eq():
     a2 = a1 + 1
     a3 = a2.astype('int')
     a4 = np.empty((0, 20))
-    assert not eq(a1, a2)
-    assert not eq(a1, a3)
-    assert not eq(a1, a4)
+    assert not eq(a1, a2)  # same shape/dtype, different values
+    assert not eq(a1, a3)  # same shape, different dtype and values
+    assert not eq(a1, a4)  # different shape (note: np.all gives True if one array has size 0)
 
-    assert eq(a2, a3)
-    assert not eq(a2, a4)
+    assert not eq(a2, a3)  # same values, but different dtype
+    assert not eq(a2, a4)  # different shape
     
-    assert not eq(a3, a4)
+    assert not eq(a3, a4)  # different shape and dtype
     
     assert eq(a4, a4.copy())
     assert not eq(a4, a4.T)

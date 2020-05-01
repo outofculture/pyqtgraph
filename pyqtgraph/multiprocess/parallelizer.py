@@ -101,7 +101,10 @@ class Parallelize(object):
                 
         else:  ## parent
             if self.showProgress:
-                self.progressDlg.__exit__(None, None, None)
+                try:
+                    self.progressDlg.__exit__(None, None, None)
+                except Exception:
+                    pass
 
     def runSerial(self):
         if self.showProgress:
@@ -116,7 +119,7 @@ class Parallelize(object):
         
         ## break up tasks into one set per worker
         workers = self.workers
-        chunks = [[] for i in xrange(workers)]
+        chunks = [[] for i in range(workers)]
         i = 0
         for i in range(len(self.tasks)):
             chunks[i%workers].append(self.tasks[i])
@@ -192,6 +195,8 @@ class Parallelize(object):
         finally:
             if self.showProgress:
                 self.progressDlg.__exit__(None, None, None)
+            for ch in self.childs:
+                ch.join()
         if len(self.exitCodes) < len(self.childs):
             raise Exception("Parallelizer started %d processes but only received exit codes from %d." % (len(self.childs), len(self.exitCodes)))
         for code in self.exitCodes:
@@ -240,7 +245,7 @@ class Tasker(object):
         self.proc = process
         self.par = parallelizer
         self.tasks = tasks
-        for k, v in kwds.iteritems():
+        for k, v in kwds.items():
             setattr(self, k, v)
         
     def __iter__(self):

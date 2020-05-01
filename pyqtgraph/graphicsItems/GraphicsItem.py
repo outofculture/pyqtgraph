@@ -1,3 +1,4 @@
+from functools import reduce
 from ..Qt import QtGui, QtCore, isQObjectAlive
 from ..GraphicsScene import GraphicsScene
 from ..Point import Point
@@ -146,7 +147,8 @@ class GraphicsItem(object):
         return parents
     
     def viewRect(self):
-        """Return the bounds (in item coordinates) of this item's ViewBox or GraphicsWidget"""
+        """Return the visible bounds of this item's ViewBox or GraphicsWidget,
+        in the local coordinate system of the item."""
         view = self.getViewBox()
         if view is None:
             return None

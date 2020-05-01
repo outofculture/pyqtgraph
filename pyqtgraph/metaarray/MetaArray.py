@@ -22,6 +22,13 @@ from ..python2_3 import basestring
 USE_HDF5 = True
 try:
     import h5py
+
+    # Older h5py versions tucked Group and Dataset deeper inside the library:
+    if not hasattr(h5py, 'Group'):
+        import h5py.highlevel
+        h5py.Group = h5py.highlevel.Group
+        h5py.Dataset = h5py.highlevel.Dataset
+        
     HAVE_HDF5 = True
 except:
     USE_HDF5 = False
@@ -225,7 +232,7 @@ class MetaArray(object):
         #a = np.ndarray.__getitem__(self, nInd)
         a = self._data[nInd]
         if len(nInd) == self.ndim:
-            if np.all([not isinstance(ind, slice) for ind in nInd]):  ## no slices; we have requested a single value from the array
+            if np.all([not isinstance(ind, (slice, np.ndarray)) for ind in nInd]):  ## no slices; we have requested a single value from the array
                 return a
         #if type(a) != type(self._data) and not isinstance(a, np.ndarray):  ## indexing returned single value
             #return a
@@ -748,7 +755,6 @@ class MetaArray(object):
             else:
                 fd.seek(0)
                 meta = MetaArray._readMeta(fd)
-
                 if not kwargs.get("readAllData", True):
                     self._data = np.empty(meta['shape'], dtype=meta['type'])
                 if 'version' in meta:
@@ -1000,9 +1006,9 @@ class MetaArray(object):
             data[k] = val
         for k in root:
             obj = root[k]
-            if isinstance(obj, h5py.highlevel.Group):
+            if isinstance(obj, h5py.Group):
                 val = MetaArray.readHDF5Meta(obj)
-            elif isinstance(obj, h5py.highlevel.Dataset):
+            elif isinstance(obj, h5py.Dataset):
                 if mmap:
                     val = MetaArray.mapHDF5Array(obj)
                 else:
@@ -1031,6 +1037,7 @@ class MetaArray(object):
         """Write this object to a file. The object can be restored by calling MetaArray(file=fileName)
         opts:
             appendAxis: the name (or index) of the appendable axis. Allows the array to grow.
+            appendKeys: a list of keys (other than "values") for metadata to append to on the appendable axis.
             compression: None, 'gzip' (good compression), 'lzf' (fast compression), etc.
             chunks: bool or tuple specifying chunk shape
         """
@@ -1096,7 +1103,6 @@ class MetaArray(object):
                 'chunks': None,
                 'compression': None
             }
-        
             
         ## set maximum shape to allow expansion along appendAxis
         append = False
@@ -1125,14 +1131,19 @@ class MetaArray(object):
             data[tuple(sl)] = self.view(np.ndarray)
             
             ## add axis values if they are present.
+            axKeys = ["values"]
+            axKeys.extend(opts.get("appendKeys", []))
             axInfo = f['info'][str(ax)]
-            if 'values' in axInfo:
-                v = axInfo['values']
-                v2 = self._info[ax]['values']
-                shape = list(v.shape)
-                shape[0] += v2.shape[0]
-                v.resize(shape)
-                v[-v2.shape[0]:] = v2
+            for key in axKeys:
+                if key in axInfo:
+                    v = axInfo[key]
+                    v2 = self._info[ax][key]
+                    shape = list(v.shape)
+                    shape[0] += v2.shape[0]
+                    v.resize(shape)
+                    v[-v2.shape[0]:] = v2
+                else:
+                    raise TypeError('Cannot append to axis info key "%s"; this key is not present in the target file.' % key)
             f.close()
         else:
             f = h5py.File(fileName, 'w')
