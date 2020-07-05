@@ -11,10 +11,8 @@ Copyright 2020 Luke Campagnola, University of North Carolina at Chapel Hill
 
 <http://www.pyqtgraph.org>
 
-PyQtGraph is intended for use in mathematics / scientific / engineering applications.
-Despite being written entirely in python, the library is fast due to its
-heavy leverage of numpy for number crunching, Qt's GraphicsView framework for
-2D display, and OpenGL for 3D display.
+Maintainer
+----------
 
 Requirements
 ------------

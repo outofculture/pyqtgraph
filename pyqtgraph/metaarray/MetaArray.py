@@ -21,6 +21,13 @@ from ..python2_3 import basestring
 USE_HDF5 = True
 try:
     import h5py
+
+    # Older h5py versions tucked Group and Dataset deeper inside the library:
+    if not hasattr(h5py, 'Group'):
+        import h5py.highlevel
+        h5py.Group = h5py.highlevel.Group
+        h5py.Dataset = h5py.highlevel.Dataset
+        
     HAVE_HDF5 = True
 except:
     USE_HDF5 = False
@@ -224,7 +231,7 @@ class MetaArray(object):
         #a = np.ndarray.__getitem__(self, nInd)
         a = self._data[nInd]
         if len(nInd) == self.ndim:
-            if np.all([not isinstance(ind, slice) for ind in nInd]):  ## no slices; we have requested a single value from the array
+            if np.all([not isinstance(ind, (slice, np.ndarray)) for ind in nInd]):  ## no slices; we have requested a single value from the array
                 return a
         #if type(a) != type(self._data) and not isinstance(a, np.ndarray):  ## indexing returned single value
             #return a
@@ -993,9 +1000,9 @@ class MetaArray(object):
             data[k] = val
         for k in root:
             obj = root[k]
-            if isinstance(obj, h5py.highlevel.Group):
+            if isinstance(obj, h5py.Group):
                 val = MetaArray.readHDF5Meta(obj)
-            elif isinstance(obj, h5py.highlevel.Dataset):
+            elif isinstance(obj, h5py.Dataset):
                 if mmap:
                     val = MetaArray.mapHDF5Array(obj)
                 else:

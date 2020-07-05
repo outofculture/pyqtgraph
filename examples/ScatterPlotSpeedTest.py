@@ -12,7 +12,7 @@ For testing rapid updates of ScatterPlotItem under various conditions.
 import initExample
 
 
-from pyqtgraph.Qt import QtGui, QtCore, QT_LIB
+from pyqtgraph.Qt import QtGui, QtCore, USE_PYSIDE, USE_PYQT5
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.ptime import time
@@ -20,11 +20,9 @@ from pyqtgraph.ptime import time
 app = QtGui.QApplication([])
 #mw = QtGui.QMainWindow()
 #mw.resize(800,800)
-if QT_LIB == 'PySide':
+if USE_PYSIDE:
     from ScatterPlotSpeedTestTemplate_pyside import Ui_Form
-elif QT_LIB == 'PySide2':
-    from ScatterPlotSpeedTestTemplate_pyside2 import Ui_Form
-elif QT_LIB == 'PyQt5':
+elif USE_PYQT5:
     from ScatterPlotSpeedTestTemplate_pyqt5 import Ui_Form
 else:
     from ScatterPlotSpeedTestTemplate_pyqt import Ui_Form

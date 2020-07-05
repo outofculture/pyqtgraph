@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 from itertools import starmap, repeat
-try:
-    from itertools import imap
-except ImportError:
-    imap = map
 import numpy as np
 import weakref
 from ..Qt import QtGui, QtCore, QT_LIB
@@ -15,6 +11,10 @@ from .. import getConfigOption
 from ..pgcollections import OrderedDict
 from .. import debug
 from ..python2_3 import basestring
+try:
+    import itertools.imap as imap
+except ImportError:
+    imap = map
 
 
 __all__ = ['ScatterPlotItem', 'SpotItem']
@@ -196,7 +196,7 @@ class SymbolAtlas(object):
             width = 0
 
         # sort symbols by height
-        symbols = sorted(rendered.keys(), key=lambda x: rendered[x].shape[1], reverse=True)
+        symbols = sorted(list(rendered.keys()), key=lambda x: rendered[x].shape[1], reverse=True)
 
         self.atlasRows = []
 
@@ -616,7 +616,7 @@ class ScatterPlotItem(GraphicsObject):
 
             self.fragmentAtlas.getAtlas() # generate atlas so source widths are available.
 
-            dataSet['width'] = np.array(list(imap(QtCore.QRectF.width, dataSet['sourceRect'])))/2
+            dataSet['width'] = np.array(list(map(QtCore.QRectF.width, dataSet['sourceRect'])))/2
             dataSet['targetRect'] = None
             self._maxSpotPxWidth = self.fragmentAtlas.max_width
         else:

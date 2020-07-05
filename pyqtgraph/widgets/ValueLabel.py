@@ -2,6 +2,9 @@ from ..Qt import QtCore, QtGui
 from ..ptime import time
 from .. import functions as fn
 
+from functools import reduce
+
+
 __all__ = ['ValueLabel']
 
 class ValueLabel(QtGui.QLabel):
@@ -54,7 +57,6 @@ class ValueLabel(QtGui.QLabel):
         
     def averageValue(self):
         return sum(v[1] for v in self.values) / float(len(self.values))
-        
         
     def paintEvent(self, ev):
         self.setText(self.generateText())

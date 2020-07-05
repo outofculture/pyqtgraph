@@ -89,17 +89,16 @@ class _StringIO(object):
         return ''.join(map(asUnicode, self.data)).encode('utf8')
 
     
-def _loadUiType(uiFile):
+def loadUiType(uiFile, package=None):
     """
     PySide lacks a "loadUiType" command like PyQt4's, so we have to convert
     the ui file to py code in-memory first and then execute it in a
     special frame to retrieve the form_class.
 
-    from stackoverflow: http://stackoverflow.com/a/14195313/3781327
+    The *package* argument must be specified if the ui file contains relative
+    imports.
 
-    seems like this might also be a legitimate solution, but I'm not sure
-    how to make PyQt4 and pyside look the same...
-        http://stackoverflow.com/a/8717832
+    from stackoverflow: http://stackoverflow.com/a/14195313/3781327
     """
 
     if QT_LIB == "PYSIDE":
@@ -219,7 +218,7 @@ elif QT_LIB == PYQT5:
 
 elif QT_LIB == PYSIDE2:
     from PySide2 import QtGui, QtCore, QtWidgets
-    
+
     try:
         from PySide2 import QtSvg
     except ImportError as err:
@@ -302,7 +301,6 @@ if QT_LIB in [PYQT5, PYSIDE2]:
 # Common to PySide and PySide2
 if QT_LIB in [PYSIDE, PYSIDE2]:
     QtVersion = QtCore.__version__
-    loadUiType = _loadUiType
         
     # PySide does not implement qWait
     if not isinstance(QtTest, FailedImport):
@@ -323,8 +321,6 @@ if QT_LIB in [PYQT4, PYQT5]:
     import sip
     def isQObjectAlive(obj):
         return not sip.isdeleted(obj)
-    
-    loadUiType = uic.loadUiType
 
     QtCore.Signal = QtCore.pyqtSignal
     

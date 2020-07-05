@@ -33,7 +33,7 @@ def addGradientListToDocstring():
     """Decorator to add list of current pre-defined gradients to the end of a function docstring."""
     def dec(fn):
         if fn.__doc__ is not None:
-            fn.__doc__ = fn.__doc__ + str(Gradients.keys()).strip('[').strip(']')
+            fn.__doc__ = fn.__doc__ + str(list(Gradients.keys())).strip('[').strip(']')
         return fn
     return dec
 
@@ -252,6 +252,13 @@ class TickSliderItem(GraphicsWidget):
             pos.setX(min(max(pos.x(), 0), self.length))
             self.addTick(pos.x()/self.length)
         elif ev.button() == QtCore.Qt.RightButton:
+            #if self.moving:
+                #ev.accept()
+                #self.setPos(self.startPosition)
+                #self.moving = False
+                #self.sigMoving.emit(self)
+                #self.sigMoved.emit(self)
+            #else:
             self.showMenu(ev)
 
         #if  ev.button() == QtCore.Qt.RightButton:

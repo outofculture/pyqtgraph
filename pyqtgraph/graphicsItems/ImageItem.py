@@ -400,7 +400,7 @@ class ImageItem(GraphicsObject):
         # if the image data is a small int, then we can combine levels + lut
         # into a single lut for better performance
         levels = self.levels
-        if levels is not None and levels.ndim == 1 and image.dtype in (np.ubyte, np.uint16):
+        if lut is not None and levels is not None and levels.ndim == 1 and image.dtype in (np.ubyte, np.uint16):
             if self._effectiveLut is None:
                 eflsize = 2**(image.itemsize*8)
                 ind = np.arange(eflsize)
@@ -500,7 +500,7 @@ class ImageItem(GraphicsObject):
                 return None, None
             if stepData.dtype.kind in "ui":
                 # For integer data, we select the bins carefully to avoid aliasing
-                step = np.ceil((mx-mn) / 500.)
+                step = max(1, np.ceil((mx-mn) / 500.))
                 bins = np.arange(mn, mx+1.01*step, step, dtype=np.int)
             else:
                 # for float data, let numpy select the bins.

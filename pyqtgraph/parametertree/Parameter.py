@@ -220,6 +220,9 @@ class Parameter(QtCore.QObject):
     def setName(self, name):
         """Attempt to change the name of this parameter; return the actual name. 
         (The parameter may reject the name change or automatically pick a different name)"""
+        if 'frame exposure' in name:
+            import traceback
+            traceback.print_stack()
         if self.opts['strictNaming']:
             if len(name) < 1 or re.search(r'\W', name) or re.match(r'\d', name[0]):
                 raise Exception("Parameter name '%s' is invalid. (Must contain only alphanumeric and underscore characters and may not start with a number)" % name)
