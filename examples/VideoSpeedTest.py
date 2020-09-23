@@ -41,7 +41,7 @@ else:
     ui.rawGLImg = RawImageGLWidget()
     ui.stack.addWidget(ui.rawGLImg)
 
-ui.maxSpin1.setOpts(value=255, step=1)
+ui.maxSpin1.setOpts(value=20000, step=1)
 ui.minSpin1.setOpts(value=0, step=1)
 
 #ui.graphicsView.useOpenGL()  ## buggy, but you can try it if you need extra speed.
