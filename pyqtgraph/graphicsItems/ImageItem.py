@@ -398,7 +398,7 @@ class ImageItem(GraphicsObject):
         # if the image data is a small int, then we can combine levels + lut
         # into a single lut for better performance
         levels = self.levels
-        if lut is not None and levels is not None and levels.ndim == 1 and image.dtype in (np.ubyte, np.uint16):
+        if levels is not None and levels.ndim == 1 and image.dtype in (np.ubyte, np.uint16):
             if self._effectiveLut is None:
                 eflsize = 2**(image.itemsize*8)
                 ind = np.arange(eflsize)
@@ -430,7 +430,7 @@ class ImageItem(GraphicsObject):
         if self._buffer is None:
             self._buildQImageBuffer(image.shape)
 
-        fn.makeARGB(image, lut=lut, levels=levels, output=self._buffer)
+        fn.jitMakeARGB(image, lut=lut, levels=levels, output=self._buffer)
         self._renderRequired = False
         self._unrenderable = False
 
