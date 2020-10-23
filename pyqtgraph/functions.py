@@ -10,14 +10,16 @@ import warnings
 
 import numba
 import numpy as np
-import cupy as cp
+try:
+    import cupy as cp
+except ImportError:
+    from .util import empty_cupy as cp
 import decimal, re
 import ctypes
 import sys, struct
 from .pgcollections import OrderedDict
 from .python2_3 import asUnicode, basestring
 from .Qt import QtGui, QtCore, QT_LIB
-from . import getConfigOption, setConfigOptions
 from . import debug, reload
 from .metaarray import MetaArray
 
