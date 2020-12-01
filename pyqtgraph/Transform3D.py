@@ -50,3 +50,20 @@ class Transform3D(QtGui.QMatrix4x4):
     def inverted(self):
         inv, b = QtGui.QMatrix4x4.inverted(self)
         return Transform3D(inv), b
+
+    def axes(self):
+        """
+        Returns
+        -------
+        tuple(Vector)
+            The three unit axes of the mapped space in (x, y, z) order.
+        """
+        origin = self.map(np.array((0, 0, 0)))
+        xAxis = self.map(np.array((1, 0, 0))) - origin
+        yAxis = self.map(np.array((0, 1, 0))) - origin
+        zAxis = self.map(np.array((0, 0, 1))) - origin
+        return (
+            Vector(xAxis / np.linalg.norm(xAxis)),
+            Vector(yAxis / np.linalg.norm(yAxis)),
+            Vector(zAxis / np.linalg.norm(zAxis)),
+        )
