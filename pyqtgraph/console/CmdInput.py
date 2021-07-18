@@ -1,12 +1,13 @@
-from ..Qt import QtCore, QtGui
+# -*- coding: utf-8 -*-
+from ..Qt import QtCore, QtGui, QtWidgets
 from ..python2_3 import asUnicode
 
-class CmdInput(QtGui.QLineEdit):
+class CmdInput(QtWidgets.QLineEdit):
     
     sigExecuteCmd = QtCore.Signal(object)
     
     def __init__(self, parent):
-        QtGui.QLineEdit.__init__(self, parent)
+        QtWidgets.QLineEdit.__init__(self, parent)
         self.history = [""]
         self.ptr = 0
     

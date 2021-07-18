@@ -5,7 +5,7 @@ import decimal
 import weakref
 import re
 
-from ..Qt import QtGui, QtCore
+from ..Qt import QtGui, QtCore, QtWidgets, QtWidgets, QtWidgets
 from ..python2_3 import asUnicode, basestring
 from ..SignalProxy import SignalProxy
 from .. import functions as fn
@@ -14,9 +14,9 @@ from .. import functions as fn
 __all__ = ['SpinBox']
 
 
-class SpinBox(QtGui.QAbstractSpinBox):
+class SpinBox(QtWidgets.QAbstractSpinBox):
     """
-    **Bases:** QtGui.QAbstractSpinBox
+    **Bases:** QtWidgets.QAbstractSpinBox
     
     Extension of QSpinBox widget for selection of a numerical value.     
     Adds many extra features:
@@ -59,14 +59,14 @@ class SpinBox(QtGui.QAbstractSpinBox):
         
         All keyword arguments are passed to :func:`setOpts`.
         """
-        QtGui.QAbstractSpinBox.__init__(self, parent)
+        QtWidgets.QAbstractSpinBox.__init__(self, parent)
         self.lastValEmitted = None
         self.lastText = ''
         self.textValid = True  ## If false, we draw a red border
         self.setMinimumWidth(0)
         self._lastFontHeight = None
         
-        self.setSizePolicy(QtGui.QSizePolicy.Policy.Expanding, QtGui.QSizePolicy.Policy.Preferred)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
         self.errorBox = ErrorBox(self.lineEdit())
         
         self.opts = {
@@ -593,12 +593,12 @@ class SpinBox(QtGui.QAbstractSpinBox):
         super().paintEvent(ev)
 
 
-class ErrorBox(QtGui.QWidget):
+class ErrorBox(QtWidgets.QWidget):
     """Red outline to draw around lineedit when value is invalid.
     (for some reason, setting border from stylesheet does not work)
     """
     def __init__(self, parent):
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         parent.installEventFilter(self)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         self._resize()

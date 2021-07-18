@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ...Qt import QtCore, QtGui, QT_LIB
+from ...Qt import QtCore, QtGui, QT_LIB, QtWidgets, QtWidgets, QtWidgets
 from ...python2_3 import asUnicode
 from ...WidgetGroup import WidgetGroup
 
@@ -10,9 +10,9 @@ ui_template = importlib.import_module(
 import weakref 
 
 translate = QtCore.QCoreApplication.translate
-class ViewBoxMenu(QtGui.QMenu):
+class ViewBoxMenu(QtWidgets.QMenu):
     def __init__(self, view):
-        QtGui.QMenu.__init__(self)
+        QtWidgets.QMenu.__init__(self)
         
         self.view = weakref.ref(view)  ## keep weakref to view to avoid circular reference (don't know why, but this prevents the ViewBox from being collected)
         self.valid = False  ## tells us whether the ui needs to be updated
@@ -28,12 +28,12 @@ class ViewBoxMenu(QtGui.QMenu):
         self.widgetGroups = []
         self.dv = QtGui.QDoubleValidator(self)
         for axis in 'XY':
-            m = QtGui.QMenu()
+            m = QtWidgets.QMenu()
             m.setTitle(f"{axis} {translate('ViewBox', 'axis')}")
-            w = QtGui.QWidget()
+            w = QtWidgets.QWidget()
             ui = ui_template.Ui_Form()
             ui.setupUi(w)
-            a = QtGui.QWidgetAction(self)
+            a = QtWidgets.QWidgetAction(self)
             a.setDefaultWidget(w)
             m.addAction(a)
             self.addMenu(m)
@@ -60,11 +60,11 @@ class ViewBoxMenu(QtGui.QMenu):
         self.ctrl[0].invertCheck.toggled.connect(self.xInvertToggled)
         self.ctrl[1].invertCheck.toggled.connect(self.yInvertToggled)
         ## exporting is handled by GraphicsScene now
-        #self.export = QtGui.QMenu("Export")
+        #self.export = QtWidgets.QMenu("Export")
         #self.setExportMethods(view.exportMethods)
         #self.addMenu(self.export)
         
-        self.leftMenu = QtGui.QMenu(translate("ViewBox", "Mouse Mode"))
+        self.leftMenu = QtWidgets.QMenu(translate("ViewBox", "Mouse Mode"))
         group = QtGui.QActionGroup(self)
         
         # This does not work! QAction _must_ be initialized with a permanent 
@@ -148,7 +148,7 @@ class ViewBoxMenu(QtGui.QMenu):
     def popup(self, *args):
         if not self.valid:
             self.updateState()
-        QtGui.QMenu.popup(self, *args)
+        QtWidgets.QMenu.popup(self, *args)
         
     def autoRange(self):
         self.view().autoRange()  ## don't let signal call this directly--it'll add an unwanted argument

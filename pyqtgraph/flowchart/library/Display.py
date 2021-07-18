@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from ..Node import Node
 import weakref
-from ...Qt import QtCore, QtGui
+from ...Qt import QtCore, QtGui, QtWidgets, QtWidgets, QtWidgets, QtWidgets
 from ...graphicsItems.ScatterPlotItem import ScatterPlotItem
 from ...graphicsItems.PlotCurveItem import PlotCurveItem
 from ... import PlotDataItem, ComboBox
@@ -65,7 +65,7 @@ class PlotWidgetNode(Node):
                         items.add(vid)
                     else:
                         # Add the item to the plot, or generate a new item if needed.
-                        if isinstance(val, QtGui.QGraphicsItem):
+                        if isinstance(val, QtWidgets.QGraphicsItem):
                             self.plot.addItem(val)
                             item = val
                         else:
@@ -209,12 +209,12 @@ class ScatterPlot(CtrlNode):
         self.item = ScatterPlotItem()
         self.keys = []
         
-        #self.ui = QtGui.QWidget()
-        #self.layout = QtGui.QGridLayout()
+        #self.ui = QtWidgets.QWidget()
+        #self.layout = QtWidgets.QGridLayout()
         #self.ui.setLayout(self.layout)
         
-        #self.xCombo = QtGui.QComboBox()
-        #self.yCombo = QtGui.QComboBox()
+        #self.xCombo = QtWidgets.QComboBox()
+        #self.yCombo = QtWidgets.QComboBox()
         
         
     

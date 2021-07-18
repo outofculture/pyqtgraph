@@ -7,6 +7,8 @@ is used by the view widget
 """
 
 ## Add path to library (just for examples; you do not need this)
+import warnings
+
 import initExample
 
 import argparse

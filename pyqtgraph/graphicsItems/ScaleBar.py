@@ -1,4 +1,5 @@
-from ..Qt import QtGui, QtCore
+# -*- coding: utf-8 -*-
+from ..Qt import QtGui, QtCore, QtWidgets
 from .GraphicsObject import *
 from .GraphicsWidgetAnchor import *
 from .TextItem import TextItem
@@ -29,7 +30,7 @@ class ScaleBar(GraphicsObject, GraphicsWidgetAnchor):
             offset = (0,0)
         self.offset = offset
         
-        self.bar = QtGui.QGraphicsRectItem()
+        self.bar = QtWidgets.QGraphicsRectItem()
         self.bar.setPen(self.pen)
         self.bar.setBrush(self.brush)
         self.bar.setParentItem(self)
@@ -67,5 +68,3 @@ class ScaleBar(GraphicsObject, GraphicsWidgetAnchor):
             anchor = (anchorx, anchory)
             self.anchor(itemPos=anchor, parentPos=anchor, offset=offset)
         return ret
-
-

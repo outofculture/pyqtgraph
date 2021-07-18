@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 from ..widgets.FileDialog import FileDialog
-from ..Qt import QtGui, QtCore, QtSvg
+from ..Qt import QtGui, QtCore, QtSvg, QtWidgets, QtWidgets
 from ..python2_3 import asUnicode, basestring
 from ..GraphicsScene import GraphicsScene
 import os, re
@@ -45,8 +46,8 @@ class Exporter(object):
         if opts is None:
             opts = {}
         self.fileDialog = FileDialog()
-        self.fileDialog.setFileMode(QtGui.QFileDialog.FileMode.AnyFile)
-        self.fileDialog.setAcceptMode(QtGui.QFileDialog.AcceptMode.AcceptSave)
+        self.fileDialog.setFileMode(QtWidgets.QFileDialog.FileMode.AnyFile)
+        self.fileDialog.setAcceptMode(QtWidgets.QFileDialog.AcceptMode.AcceptSave)
         if filter is not None:
             if isinstance(filter, basestring):
                 self.fileDialog.setNameFilter(filter)
@@ -118,7 +119,7 @@ class Exporter(object):
             root = self.item
         preItems = []
         postItems = []
-        if isinstance(root, QtGui.QGraphicsScene):
+        if isinstance(root, QtWidgets.QGraphicsScene):
             childs = [i for i in root.items() if i.parentItem() is None]
             rootItem = []
         else:

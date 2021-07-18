@@ -1,23 +1,26 @@
+# -*- coding: utf-8 -*-
 """
 HistogramLUTWidget test:
 
 Tests the creation of a HistogramLUTWidget.
 """
 
-import pyqtgraph as pg
-from pyqtgraph.Qt import QtGui
 import numpy as np
+
+import pyqtgraph as pg
+from pyqtgraph.Qt import QtWidgets
+
 
 def testHistogramLUTWidget():
     pg.mkQApp()
     
-    win = QtGui.QMainWindow()
+    win = QtWidgets.QMainWindow()
     win.show()
 
-    cw = QtGui.QWidget()
+    cw = QtWidgets.QWidget()
     win.setCentralWidget(cw)
 
-    l = QtGui.QGridLayout()
+    l = QtWidgets.QGridLayout()
     cw.setLayout(l)
     l.setSpacing(0)
 
@@ -40,5 +43,5 @@ def testHistogramLUTWidget():
 
     w.setImageItem(img)
     
-    QtGui.QApplication.processEvents()
+    QtWidgets.QApplication.processEvents()
     win.close()

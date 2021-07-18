@@ -2,7 +2,7 @@
 import sys, re, os, time, traceback, subprocess
 import pickle
 
-from ..Qt import QtCore, QtGui, QT_LIB
+from ..Qt import QtCore, QtGui, QT_LIB, QtWidgets
 from ..python2_3 import basestring
 from .. import exceptionHandling as exceptionHandling
 from .. import getConfigOption
@@ -12,7 +12,7 @@ ui_template = importlib.import_module(
     f'.template_{QT_LIB.lower()}', package=__package__)
 
 
-class ConsoleWidget(QtGui.QWidget):
+class ConsoleWidget(QtWidgets.QWidget):
     """
     Widget displaying console output and accepting command input.
     Implements:
@@ -45,7 +45,7 @@ class ConsoleWidget(QtGui.QWidget):
                             editorCommand --loadfile {fileName} --gotoline {lineNum}
         ==============  =============================================================================
         """
-        QtGui.QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         if namespace is None:
             namespace = {}
         namespace['__console__'] = self

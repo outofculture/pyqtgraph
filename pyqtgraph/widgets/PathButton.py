@@ -1,14 +1,15 @@
-from ..Qt import QtGui, QtCore
+# -*- coding: utf-8 -*-
+from ..Qt import QtGui, QtCore, QtWidgets
 from .. import functions as fn
 
 __all__ = ['PathButton']
 
 
-class PathButton(QtGui.QPushButton):
+class PathButton(QtWidgets.QPushButton):
     """Simple PushButton extension that paints a QPainterPath centered on its face.
     """
     def __init__(self, parent=None, path=None, pen='default', brush=None, size=(30,30), margin=7):
-        QtGui.QPushButton.__init__(self, parent)
+        QtWidgets.QPushButton.__init__(self, parent)
         self.margin = margin
         self.path = None
         if pen == 'default':

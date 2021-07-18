@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..Qt import QtCore, QtGui, QtWidgets
+from ..Qt import QtCore, QtGui, QtWidgets, QtWidgets
 HAVE_OPENGL = hasattr(QtWidgets, 'QOpenGLWidget')
 import math
 import warnings
@@ -51,7 +51,7 @@ class PlotCurveItem(GraphicsObject):
         self.clear()
 
         ## this is disastrous for performance.
-        #self.setCacheMode(QtGui.QGraphicsItem.CacheMode.DeviceCoordinateCache)
+        #self.setCacheMode(QtWidgets.QGraphicsItem.CacheMode.DeviceCoordinateCache)
 
         self.metaData = {}
         self.opts = {
@@ -394,7 +394,7 @@ class PlotCurveItem(GraphicsObject):
 
         profiler("data checks")
 
-        #self.setCacheMode(QtGui.QGraphicsItem.CacheMode.NoCache)  ## Disabling and re-enabling the cache works around a bug in Qt 4.6 causing the cached results to display incorrectly
+        #self.setCacheMode(QtWidgets.QGraphicsItem.CacheMode.NoCache)  ## Disabling and re-enabling the cache works around a bug in Qt 4.6 causing the cached results to display incorrectly
                                                         ##    Test this bug with test_PlotWidget and zoom in on the animated plot
         self.yData = kargs['y'].view(np.ndarray)
         self.xData = kargs['x'].view(np.ndarray)

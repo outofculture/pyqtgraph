@@ -4,7 +4,7 @@ import sys
 import math
 from copy import deepcopy
 import numpy as np
-from ...Qt import QtGui, QtCore
+from ...Qt import QtGui, QtCore, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets
 from ...python2_3 import basestring
 from ...Point import Point
 from ... import functions as fn
@@ -189,7 +189,7 @@ class ViewBox(GraphicsWidget):
         self.childGroup = ChildGroup(self)
         self.childGroup.itemsChangedListeners.append(self)
 
-        self.background = QtGui.QGraphicsRectItem(self.rect())
+        self.background = QtWidgets.QGraphicsRectItem(self.rect())
         self.background.setParentItem(self)
         self.background.setZValue(-1e6)
         self.background.setPen(fn.mkPen(None))
@@ -197,13 +197,13 @@ class ViewBox(GraphicsWidget):
 
         self.border = fn.mkPen(border)
 
-        self.borderRect = QtGui.QGraphicsRectItem(self.rect())
+        self.borderRect = QtWidgets.QGraphicsRectItem(self.rect())
         self.borderRect.setParentItem(self)
         self.borderRect.setZValue(1e3)
         self.borderRect.setPen(self.border)
 
         ## Make scale box that is shown when dragging on the view
-        self.rbScaleBox = QtGui.QGraphicsRectItem(0, 0, 1, 1)
+        self.rbScaleBox = QtWidgets.QGraphicsRectItem(0, 0, 1, 1)
         self.rbScaleBox.setPen(fn.mkPen((255,255,100), width=1))
         self.rbScaleBox.setBrush(fn.mkBrush(255,255,0,100))
         self.rbScaleBox.setZValue(1e9)
@@ -211,7 +211,7 @@ class ViewBox(GraphicsWidget):
         self.addItem(self.rbScaleBox, ignoreBounds=True)
 
         ## show target rect for debugging
-        self.target = QtGui.QGraphicsRectItem(0, 0, 1, 1)
+        self.target = QtWidgets.QGraphicsRectItem(0, 0, 1, 1)
         self.target.setPen(fn.mkPen('r'))
         self.target.setParentItem(self)
         self.target.hide()
@@ -220,7 +220,7 @@ class ViewBox(GraphicsWidget):
         self.axHistoryPointer = -1 # pointer into the history. Allows forward/backward movement, not just "undo"
 
         self.setZValue(-100)
-        self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Policy.Expanding, QtGui.QSizePolicy.Policy.Expanding))
+        self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding))
 
         self.setAspectLocked(lockAspect)
 
@@ -1656,7 +1656,7 @@ class ViewBox(GraphicsWidget):
     def forgetView(vid, name):
         if ViewBox is None:     ## can happen as python is shutting down
             return
-        if QtGui.QApplication.instance() is None:
+        if QtWidgets.QApplication.instance() is None:
             return
         ## Called with ID and name of view (the view itself is no longer available)
         for v in list(ViewBox.AllViews.keys()):
@@ -1703,11 +1703,11 @@ class ViewBox(GraphicsWidget):
         g = ItemGroup()
         g.setParentItem(self.childGroup)
         self.locateGroup = g
-        g.box = QtGui.QGraphicsRectItem(br)
+        g.box = QtWidgets.QGraphicsRectItem(br)
         g.box.setParentItem(g)
         g.lines = []
         for p in (br.topLeft(), br.bottomLeft(), br.bottomRight(), br.topRight()):
-            line = QtGui.QGraphicsLineItem(c.x(), c.y(), p.x(), p.y())
+            line = QtWidgets.QGraphicsLineItem(c.x(), c.y(), p.x(), p.y())
             line.setParentItem(g)
             g.lines.append(line)
 
@@ -1716,9 +1716,9 @@ class ViewBox(GraphicsWidget):
         g.setZValue(1000000)
 
         if children:
-            g.path = QtGui.QGraphicsPathItem(g.childrenShape())
+            g.path = QtWidgets.QGraphicsPathItem(g.childrenShape())
         else:
-            g.path = QtGui.QGraphicsPathItem(g.shape())
+            g.path = QtWidgets.QGraphicsPathItem(g.shape())
         g.path.setParentItem(g)
         g.path.setPen(fn.mkPen('g'))
         g.path.setZValue(100)

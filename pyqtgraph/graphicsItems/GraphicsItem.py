@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 import warnings
 from math import hypot
 from collections import OrderedDict
 from functools import reduce
-from ..Qt import QtGui, QtCore, isQObjectAlive
+from ..Qt import QtGui, QtCore, isQObjectAlive, QtWidgets, QtWidgets
 from ..GraphicsScene import GraphicsScene
 from ..Point import Point
 from .. import functions as fn
@@ -50,7 +51,7 @@ class GraphicsItem(object):
     def __init__(self, register=None):
         if not hasattr(self, '_qtBaseClass'):
             for b in self.__class__.__bases__:
-                if issubclass(b, QtGui.QGraphicsItem):
+                if issubclass(b, QtWidgets.QGraphicsItem):
                     self.__class__._qtBaseClass = b
                     break
         if not hasattr(self, '_qtBaseClass'):
@@ -459,7 +460,7 @@ class GraphicsItem(object):
             #if ch2.scene() is not scene:
                 #print "item", ch2, "has different scene:", ch2.scene(), scene
                 #scene.addItem(ch2)
-                #QtGui.QApplication.processEvents()
+                #QtWidgets.QApplication.processEvents()
                 #print "   --> ", ch2.scene()
             #self.setChildScene(ch2)
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..Qt import QtGui, QtCore
+from ..Qt import QtGui, QtCore, QtWidgets
 from ..python2_3 import asUnicode
 import numpy as np
 from ..Point import Point
@@ -46,7 +46,7 @@ class AxisItem(GraphicsWidget):
         """
 
         GraphicsWidget.__init__(self, parent)
-        self.label = QtGui.QGraphicsTextItem(self)
+        self.label = QtWidgets.QGraphicsTextItem(self)
         self.picture = None
         self.orientation = orientation
         if orientation not in ['left', 'right', 'top', 'bottom']:

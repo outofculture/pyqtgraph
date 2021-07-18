@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 import os
-from ..Qt import QtCore, QtGui
+from ..Qt import QtCore, QtGui, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets
 from ..python2_3 import asUnicode
 from .Parameter import Parameter, registerParameterType
 from .ParameterItem import ParameterItem
@@ -45,12 +46,12 @@ class WidgetParameterItem(ParameterItem):
         self.eventProxy = EventProxy(w, self.widgetEventFilter)
 
         if self.asSubItem:
-            self.subItem = QtGui.QTreeWidgetItem()
+            self.subItem = QtWidgets.QTreeWidgetItem()
             self.subItem.depth = self.depth + 1
             self.subItem.setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
             self.addChild(self.subItem)
 
-        self.defaultBtn = QtGui.QPushButton()
+        self.defaultBtn = QtWidgets.QPushButton()
         self.defaultBtn.setAutoDefault(False)
         self.defaultBtn.setFixedWidth(20)
         self.defaultBtn.setFixedHeight(20)
@@ -58,9 +59,9 @@ class WidgetParameterItem(ParameterItem):
         self.defaultBtn.setIcon(icons.getGraphIcon('default'))
         self.defaultBtn.clicked.connect(self.defaultClicked)
         
-        self.displayLabel = QtGui.QLabel()
+        self.displayLabel = QtWidgets.QLabel()
         
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(2)
         if not self.asSubItem:
@@ -68,7 +69,7 @@ class WidgetParameterItem(ParameterItem):
         layout.addWidget(self.displayLabel, 1)
         layout.addStretch(0)
         layout.addWidget(self.defaultBtn)
-        self.layoutWidget = QtGui.QWidget()
+        self.layoutWidget = QtWidgets.QWidget()
         self.layoutWidget.setLayout(layout)
         
         if w.sigChanged is not None:
@@ -140,13 +141,13 @@ class WidgetParameterItem(ParameterItem):
             w.sigChanged = w.sigValueChanged
             w.sigChanging = w.sigValueChanging
         elif t == 'bool':
-            w = QtGui.QCheckBox()
+            w = QtWidgets.QCheckBox()
             w.sigChanged = w.toggled
             w.value = w.isChecked
             w.setValue = w.setChecked
             self.hideWidget = False
         elif t == 'str':
-            w = QtGui.QLineEdit()
+            w = QtWidgets.QLineEdit()
             w.setStyleSheet('border: 0px')
             w.sigChanged = w.editingFinished
             w.value = lambda: asUnicode(w.text())
@@ -222,9 +223,9 @@ class WidgetParameterItem(ParameterItem):
         if value is None:
             value = self.param.value()
         opts = self.param.opts
-        if isinstance(self.widget, QtGui.QAbstractSpinBox):
+        if isinstance(self.widget, QtWidgets.QAbstractSpinBox):
             text = asUnicode(self.widget.lineEdit().text())
-        elif isinstance(self.widget, QtGui.QComboBox):
+        elif isinstance(self.widget, QtWidgets.QComboBox):
             text = self.widget.currentText()
         else:
             text = asUnicode(value)
@@ -417,21 +418,21 @@ class GroupParameterItem(ParameterItem):
         if 'addText' in param.opts:
             addText = param.opts['addText']
             if 'addList' in param.opts:
-                self.addWidget = QtGui.QComboBox()
-                self.addWidget.setSizeAdjustPolicy(QtGui.QComboBox.SizeAdjustPolicy.AdjustToContents)
+                self.addWidget = QtWidgets.QComboBox()
+                self.addWidget.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents)
                 self.updateAddList()
                 self.addWidget.currentIndexChanged.connect(self.addChanged)
             else:
-                self.addWidget = QtGui.QPushButton(addText)
+                self.addWidget = QtWidgets.QPushButton(addText)
                 self.addWidget.clicked.connect(self.addClicked)
-            w = QtGui.QWidget()
-            l = QtGui.QHBoxLayout()
+            w = QtWidgets.QWidget()
+            l = QtWidgets.QHBoxLayout()
             l.setContentsMargins(0,0,0,0)
             w.setLayout(l)
             l.addWidget(self.addWidget)
             l.addStretch()
             self.addWidgetBox = w
-            self.addItem = QtGui.QTreeWidgetItem([])
+            self.addItem = QtWidgets.QTreeWidgetItem([])
             self.addItem.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.addItem.depth = self.depth + 1
             ParameterItem.addChild(self, self.addItem)
@@ -559,7 +560,7 @@ class ListParameterItem(WidgetParameterItem):
     def makeWidget(self):
         opts = self.param.opts
         t = opts['type']
-        w = QtGui.QComboBox()
+        w = QtWidgets.QComboBox()
         w.setMaximumHeight(20)  ## set to match height of spin box and line edit
         w.sigChanged = w.currentIndexChanged
         w.value = self.value
@@ -669,11 +670,11 @@ class ActionParameterItem(ParameterItem):
     """ParameterItem displaying a clickable button."""
     def __init__(self, param, depth):
         ParameterItem.__init__(self, param, depth)
-        self.layoutWidget = QtGui.QWidget()
-        self.layout = QtGui.QHBoxLayout()
+        self.layoutWidget = QtWidgets.QWidget()
+        self.layout = QtWidgets.QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layoutWidget.setLayout(self.layout)
-        self.button = QtGui.QPushButton()
+        self.button = QtWidgets.QPushButton()
         #self.layout.addSpacing(100)
         self.layout.addWidget(self.button)
         self.layout.addStretch()
@@ -727,7 +728,7 @@ class TextParameterItem(WidgetParameterItem):
     def makeWidget(self):
         self.hideWidget = False
         self.asSubItem = True
-        self.textBox = w = QtGui.QTextEdit()
+        self.textBox = w = QtWidgets.QTextEdit()
         w.sizeHint = lambda: QtCore.QSize(300, 100)
         w.value = lambda: str(w.toPlainText())
         w.setValue = w.setPlainText

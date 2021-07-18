@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 from .Exporter import Exporter
 from ..parametertree import Parameter
-from ..Qt import QtCore, QtGui, QtWidgets
+from ..Qt import QtCore, QtGui, QtWidgets, QtWidgets
 from .. import functions as fn
 import numpy as np
 import sys
@@ -15,7 +16,7 @@ class ImageExporter(Exporter):
     def __init__(self, item):
         Exporter.__init__(self, item)
         tr = self.getTargetRect()
-        if isinstance(item, QtGui.QGraphicsItem):
+        if isinstance(item, QtWidgets.QGraphicsItem):
             scene = item.scene()
         else:
             scene = item

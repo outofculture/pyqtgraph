@@ -1,4 +1,5 @@
-from ..Qt import QtGui, QtCore, QT_LIB
+# -*- coding: utf-8 -*-
+from ..Qt import QtGui, QtCore, QT_LIB, QtWidgets, QtWidgets
 if QT_LIB.startswith('PyQt'):
     from ..Qt import sip
 from .. import multiprocess as mp
@@ -10,7 +11,7 @@ import mmap, tempfile, os, atexit, sys, random
 __all__ = ['RemoteGraphicsView']
         
 
-class RemoteGraphicsView(QtGui.QWidget):
+class RemoteGraphicsView(QtWidgets.QWidget):
     """
     Replacement for GraphicsView that does all scene management and rendering on a remote process,
     while displaying on the local widget.
@@ -27,7 +28,7 @@ class RemoteGraphicsView(QtGui.QWidget):
         self._imgReq = None
         self._sizeHint = (640,480)  ## no clue why this is needed, but it seems to be the default sizeHint for GraphicsView.
                                     ## without it, the widget will not compete for space against another GraphicsView.
-        QtGui.QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
 
         # separate local keyword arguments from remote.
         remoteKwds = {}
@@ -43,7 +44,7 @@ class RemoteGraphicsView(QtGui.QWidget):
         self._view._setProxyOptions(deferGetattr=True)
         
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
-        self.setSizePolicy(QtGui.QSizePolicy.Policy.Expanding, QtGui.QSizePolicy.Policy.Expanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
         self.setMouseTracking(True)
         self.shm = None
         shmFileName = self._view.shmFileName()
@@ -292,4 +293,3 @@ class Renderer(GraphicsView):
         typ = QtCore.QEvent.Type(typ)
         ev = QtCore.QEvent(typ)
         return super().leaveEvent(ev)
-

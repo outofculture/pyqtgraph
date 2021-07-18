@@ -19,7 +19,7 @@ from ..ScatterPlotItem import ScatterPlotItem
 from ..ViewBox import ViewBox
 from ... import functions as fn
 from ... import icons
-from ...Qt import QtGui, QtCore, QT_LIB
+from ...Qt import QtGui, QtCore, QT_LIB, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets, QtWidgets
 from ...WidgetGroup import WidgetGroup
 from ...python2_3 import basestring
 from ...widgets.FileDialog import FileDialog
@@ -115,7 +115,7 @@ class PlotItem(GraphicsWidget):
         
         GraphicsWidget.__init__(self, parent)
         
-        self.setSizePolicy(QtGui.QSizePolicy.Policy.Expanding, QtGui.QSizePolicy.Policy.Expanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
         
         ## Set up control buttons
         path = os.path.dirname(__file__)
@@ -125,7 +125,7 @@ class PlotItem(GraphicsWidget):
         self.buttonsHidden = False ## whether the user has requested buttons to be hidden
         self.mouseHovering = False
         
-        self.layout = QtGui.QGraphicsGridLayout()
+        self.layout = QtWidgets.QGraphicsGridLayout()
         self.layout.setContentsMargins(1,1,1,1)
         self.setLayout(self.layout)
         self.layout.setHorizontalSpacing(0)
@@ -184,7 +184,7 @@ class PlotItem(GraphicsWidget):
         
         ### Set up context menu
         
-        w = QtGui.QWidget()
+        w = QtWidgets.QWidget()
         self.ctrl = c = ui_template.Ui_Form()
         c.setupUi(w)
         dv = QtGui.QDoubleValidator(self)
@@ -199,13 +199,13 @@ class PlotItem(GraphicsWidget):
         ]
         
         
-        self.ctrlMenu = QtGui.QMenu()
+        self.ctrlMenu = QtWidgets.QMenu()
         
         self.ctrlMenu.setTitle(translate("PlotItem", 'Plot Options'))
         self.subMenus = []
         for name, grp in menuItems:
-            sm = QtGui.QMenu(name)
-            act = QtGui.QWidgetAction(self)
+            sm = QtWidgets.QMenu(name)
+            act = QtWidgets.QWidgetAction(self)
             act.setDefaultWidget(grp)
             sm.addAction(act)
             self.subMenus.append(sm)
@@ -711,7 +711,7 @@ class PlotItem(GraphicsWidget):
                 ## If the parameter is not in the list, add it.
                 matches = self.ctrl.avgParamList.findItems(p, QtCore.Qt.MatchFlag.MatchExactly)
                 if len(matches) == 0:
-                    i = QtGui.QListWidgetItem(p)
+                    i = QtWidgets.QListWidgetItem(p)
                     if p in self.paramList and self.paramList[p] is True:
                         i.setCheckState(QtCore.Qt.CheckState.Checked)
                     else:
@@ -1304,7 +1304,7 @@ class PlotItem(GraphicsWidget):
         self.fileDialog = FileDialog()
         if PlotItem.lastFileDir is not None:
             self.fileDialog.setDirectory(PlotItem.lastFileDir)
-        self.fileDialog.setFileMode(QtGui.QFileDialog.FileMode.AnyFile)
-        self.fileDialog.setAcceptMode(QtGui.QFileDialog.AcceptMode.AcceptSave)
+        self.fileDialog.setFileMode(QtWidgets.QFileDialog.FileMode.AnyFile)
+        self.fileDialog.setAcceptMode(QtWidgets.QFileDialog.AcceptMode.AcceptSave)
         self.fileDialog.show()
         self.fileDialog.fileSelected.connect(handler)

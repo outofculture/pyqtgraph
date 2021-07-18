@@ -333,9 +333,9 @@ if QT_LIB in [PYSIDE2, PYSIDE6]:
             @staticmethod
             def qWait(msec):
                 start = time.time()
-                QtGui.QApplication.processEvents()
+                QtWidgets.QApplication.processEvents()
                 while time.time() < start + msec * 0.001:
-                    QtGui.QApplication.processEvents()
+                    QtWidgets.QApplication.processEvents()
             QtTest.QTest.qWait = qWait
 
 
@@ -391,7 +391,7 @@ def mkQApp(name=None):
         app = QtWidgets.QApplication.instance()
         app.setProperty('darkMode', color.lower() != "#ffffff")
 
-    QAPP = QtGui.QApplication.instance()
+    QAPP = QtWidgets.QApplication.instance()
     if QAPP is None:
         # hidpi handling
         qtVersionCompare = tuple(map(int, QtVersion.split(".")))
@@ -400,11 +400,11 @@ def mkQApp(name=None):
             pass
         elif qtVersionCompare > (5, 14):
             os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "1"
-            QtGui.QApplication.setHighDpiScaleFactorRoundingPolicy(QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+            QtWidgets.QApplication.setHighDpiScaleFactorRoundingPolicy(QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
         else:  # qt 5.12 and 5.13
-            QtGui.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
-            QtGui.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
-        QAPP = QtGui.QApplication(sys.argv or ["pyqtgraph"])
+            QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+            QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
+        QAPP = QtWidgets.QApplication(sys.argv or ["pyqtgraph"])
         QAPP.paletteChanged.connect(onPaletteChange)
         QAPP.paletteChanged.emit(QAPP.palette())
 

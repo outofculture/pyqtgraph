@@ -3,7 +3,7 @@ import math
 
 from .GraphicsWidget import GraphicsWidget
 from .LabelItem import LabelItem
-from ..Qt import QtGui, QtCore
+from ..Qt import QtGui, QtCore, QtWidgets
 from .. import functions as fn
 from ..icons import invisibleEye
 from ..Point import Point
@@ -66,7 +66,7 @@ class LegendItem(GraphicsWidget, GraphicsWidgetAnchor):
         GraphicsWidget.__init__(self)
         GraphicsWidgetAnchor.__init__(self)
         self.setFlag(self.GraphicsItemFlag.ItemIgnoresTransformations)
-        self.layout = QtGui.QGraphicsGridLayout()
+        self.layout = QtWidgets.QGraphicsGridLayout()
         self.layout.setVerticalSpacing(verSpacing)
         self.layout.setHorizontalSpacing(horSpacing)
 
