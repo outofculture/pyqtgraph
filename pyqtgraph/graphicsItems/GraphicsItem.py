@@ -58,7 +58,7 @@ class GraphicsItem(object):
         if not hasattr(self, '_qtBaseClass'):
             raise TypeError(f'Could not determine Qt base class for GraphicsItem: {self}')
 
-        self._dataTransform = coorx.NullTransform()
+        self._dataTransform = None
         self._pixelVectorCache = [None, None]
         self._viewWidget = None
         self._viewBox = None
@@ -80,10 +80,10 @@ class GraphicsItem(object):
         """
         self._dataTransform = tr
 
-    def mapDataToItem(self, x):
+    def mapFromDataToItem(self, x):
         return self.dataTransform().map(x)
 
-    def mapItemToData(self, x):
+    def mapFromItemToData(self, x):
         return self.dataTransform().imap(x)
 
     def getViewWidget(self):
