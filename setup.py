@@ -135,6 +135,7 @@ setup(
     },
     install_requires = [
         'numpy>=1.20.0',
+        'coorx>=1.0',
     ],
     **setupOpts
 )

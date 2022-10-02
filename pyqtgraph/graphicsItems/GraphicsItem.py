@@ -3,6 +3,7 @@ import weakref
 from collections import OrderedDict
 from functools import reduce
 from math import hypot
+import coorx
 
 from .. import functions as fn
 from ..GraphicsScene import GraphicsScene
@@ -56,6 +57,7 @@ class GraphicsItem(object):
         if not hasattr(self, '_qtBaseClass'):
             raise Exception('Could not determine Qt base class for GraphicsItem: %s' % str(self))
 
+        self._dataTransform = coorx.NullTransform()
         self._pixelVectorCache = [None, None]
         self._viewWidget = None
         self._viewBox = None
@@ -63,6 +65,25 @@ class GraphicsItem(object):
         self._exportOpts = False   ## If False, not currently exporting. Otherwise, contains dict of export options.
         self._cachedView = None
 
+    def dataTransform(self):
+        """Return a coorx.Transform instance that maps from data coordinates to item coordinates.
+
+        This is used for applying nonlinear transformations that are not supported by Qt GraphicsView.
+        """
+        return self._dataTransform
+
+    def setDataTransform(self, tr):
+        """Set the data transform that maps from data to item coordinates.
+
+        This is used for applying nonlinear transformations that are not supported by Qt GraphicsView.
+        """
+        self._dataTransform = tr
+
+    def mapDataToItem(self, x):
+        return self.dataTransform().map(x)
+
+    def mapItemToData(self, x):
+        return self.dataTransform().imap(x)
 
     def getViewWidget(self):
         """
