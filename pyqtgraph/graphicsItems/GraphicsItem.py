@@ -3,10 +3,10 @@ import weakref
 from collections import OrderedDict
 from functools import reduce
 from math import hypot
+
 import coorx
 
 from .. import functions as fn
-from ..GraphicsScene import GraphicsScene
 from ..Point import Point
 from ..Qt import QtCore, QtWidgets, isQObjectAlive
 
@@ -46,6 +46,7 @@ class GraphicsItem(object):
 
     The GraphicsView system places a lot of emphasis on the notion that the graphics within the scene should be device independent--you should be able to take the same graphics and display them on screens of different resolutions, printers, export to SVG, etc. This is nice in principle, but causes me a lot of headache in practice. It means that I have to circumvent all the device-independent expectations any time I want to operate in pixel coordinates rather than arbitrary scene coordinates. A lot of the code in GraphicsItem is devoted to this task--keeping track of view widgets and device transforms, computing the size and shape of a pixel in local item coordinates, etc. Note that in item coordinates, a pixel does not have to be square or even rectangular, so just asking how to increase a bounding rect by 2px can be a rather complex task.
     """
+    _dataTransform: "coorx.BaseTransform | None"
     _pixelVectorGlobalCache = LRU(100)
 
     def __init__(self):
@@ -55,7 +56,7 @@ class GraphicsItem(object):
                     self.__class__._qtBaseClass = b
                     break
         if not hasattr(self, '_qtBaseClass'):
-            raise Exception('Could not determine Qt base class for GraphicsItem: %s' % str(self))
+            raise TypeError(f'Could not determine Qt base class for GraphicsItem: {self}')
 
         self._dataTransform = coorx.NullTransform()
         self._pixelVectorCache = [None, None]
@@ -65,15 +66,15 @@ class GraphicsItem(object):
         self._exportOpts = False   ## If False, not currently exporting. Otherwise, contains dict of export options.
         self._cachedView = None
 
-    def dataTransform(self):
-        """Return a coorx.Transform instance that maps from data coordinates to item coordinates.
+    def dataTransform(self) -> "coorx.BaseTransform | None":
+        """Return a transform that maps between data coordinates and item coordinates.
 
         This is used for applying nonlinear transformations that are not supported by Qt GraphicsView.
         """
         return self._dataTransform
 
-    def setDataTransform(self, tr):
-        """Set the data transform that maps from data to item coordinates.
+    def setDataTransform(self, tr: coorx.BaseTransform) -> None:
+        """Set the transform that maps between data and item coordinates.
 
         This is used for applying nonlinear transformations that are not supported by Qt GraphicsView.
         """
@@ -152,9 +153,6 @@ class GraphicsItem(object):
             viewportTransform = view.viewportTransform()
         dt = self._qtBaseClass.deviceTransform(self, viewportTransform)
         
-        #xmag = abs(dt.m11())+abs(dt.m12())
-        #ymag = abs(dt.m21())+abs(dt.m22())
-        #if xmag * ymag == 0: 
         if dt.determinant() == 0:  ## occurs when deviceTransform is invalid because widget has not been displayed
             return None
         else:
@@ -343,7 +341,7 @@ class GraphicsItem(object):
         return vt.map(QtCore.QLineF(0, 0, 0, 1)).length()
         #return Point(vt.map(QtCore.QPointF(0, 1))-vt.map(QtCore.QPointF(0, 0))).length()
         
-        
+
     def mapToDevice(self, obj):
         """
         Return *obj* mapped from local coordinates to device coordinates (pixels).
