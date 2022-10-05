@@ -3,6 +3,7 @@ import os
 import warnings
 import weakref
 
+import coorx
 import numpy as np
 
 from ... import functions as fn
@@ -110,7 +111,9 @@ class PlotItem(GraphicsWidget):
         """
         
         GraphicsWidget.__init__(self, parent)
-        
+
+        self._defaultDataTransform = coorx.CompositeTransform()
+        self._defaultDataTransform.add_change_callback(self._onDefaultDataTransformChange)
         self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
         
         ## Set up control buttons
@@ -283,7 +286,13 @@ class PlotItem(GraphicsWidget):
         locals()[m] = _create_method(m)
         
     del _create_method
-    
+
+    def _onDefaultDataTransformChange(self):
+        self.update()
+        for item in self.items:
+            if hasattr(item, "recalculateDisplay"):
+                item.recalculateDisplay()
+
     def setAxisItems(self, axisItems=None):
         """
         Place axis items as given by `axisItems`. Initializes non-existing axis items.
@@ -521,17 +530,14 @@ class PlotItem(GraphicsWidget):
         if hasattr(item, 'implements') and item.implements('plotData'):
             name = item.name()
             self.dataItems.append(item)
-            #self.plotChanged()
-            
+
             params = kargs.get('params', {})
             self.itemMeta[item] = params
-            #item.setMeta(params)
             self.curves.append(item)
-            #self.addItem(c)
-            
-        if hasattr(item, 'setLogMode'):
-            item.setLogMode(self.ctrl.logXCheck.isChecked(), self.ctrl.logYCheck.isChecked())
-            
+
+        if hasattr(item, "dataTransform") and item.dataTransform() is None:
+            item.setDataTransform(self._defaultDataTransform)
+
         if isinstance(item, PlotDataItem):
             ## configure curve for this plot
             (alpha, auto) = self.alphaState()
@@ -883,18 +889,26 @@ class PlotItem(GraphicsWidget):
         self.recomputeAverages()
             
     def updateLogMode(self):
+        self._rebuildDefaultDataTransform()
+
+        # TODO handle these with data transform somehow?
         x = self.ctrl.logXCheck.isChecked()
         y = self.ctrl.logYCheck.isChecked()
-        for i in self.items:
-            if hasattr(i, 'setLogMode'):
-                i.setLogMode(x,y)
         self.getAxis('bottom').setLogMode(x, y)
         self.getAxis('top').setLogMode(x, y)
         self.getAxis('left').setLogMode(x, y)
         self.getAxis('right').setLogMode(x, y)
         self.enableAutoRange()
         self.recomputeAverages()
-    
+
+    def _rebuildDefaultDataTransform(self):
+        self._defaultDataTransform.transforms = []
+
+        x = self.ctrl.logXCheck.isChecked()
+        y = self.ctrl.logYCheck.isChecked()
+        if x or y:
+            self._defaultDataTransform.append(coorx.LogTransform((10 if x else 0, 10 if y else 0)))
+
     def updateDerivativeMode(self):
         d = self.ctrl.derivativeCheck.isChecked()
         for i in self.items:

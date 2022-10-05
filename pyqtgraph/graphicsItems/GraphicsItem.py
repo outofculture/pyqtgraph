@@ -81,10 +81,18 @@ class GraphicsItem(object):
         self._dataTransform = tr
 
     def mapFromDataToItem(self, x):
-        return self.dataTransform().map(x)
+        xform = self.dataTransform()
+        if xform is None:
+            return x
+        else:
+            return xform.map(x)
 
     def mapFromItemToData(self, x):
-        return self.dataTransform().imap(x)
+        xform = self.dataTransform()
+        if xform is None:
+            return x
+        else:
+            return xform.imap(x)
 
     def getViewWidget(self):
         """
