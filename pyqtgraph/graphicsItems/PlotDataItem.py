@@ -942,10 +942,6 @@ class PlotDataItem(GraphicsObject):
             if self.opts['fftMode']:
                 x,y = self._fourierTransform(x, y)
                 # Ignore the first bin for fft data if we have a logx scale
-                # TODO how do i handle this, eh?
-                if self.opts['logMode'][0]:
-                    x=x[1:]
-                    y=y[1:]
 
             if self.opts['derivativeMode']:  # plot dV/dt
                 y = np.diff(self._dataset.y)/np.diff(self._dataset.x)
@@ -954,10 +950,7 @@ class PlotDataItem(GraphicsObject):
                 x = self._dataset.y[:-1]
                 y = np.diff(self._dataset.y)/np.diff(self._dataset.x)
 
-            xformed = self.mapFromDataToItem(np.column_stack((x, y)))
-            x = xformed[..., 0]
-            y = xformed[..., 1]
-            # x, y = self.mapFromDataToItem(np.array((x, y), copy=False))
+            x, y = self.mapFromDataToItem(x, y)
 
             dataset = PlotDataset(x,y)
             dataset.containsNonfinite = self._dataset.containsNonfinite

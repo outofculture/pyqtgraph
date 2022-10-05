@@ -5,6 +5,7 @@ from functools import reduce
 from math import hypot
 
 import coorx
+import numpy as np
 
 from .. import functions as fn
 from ..Point import Point
@@ -80,19 +81,23 @@ class GraphicsItem(object):
         """
         self._dataTransform = tr
 
-    def mapFromDataToItem(self, x):
+    def mapFromDataToItem(self, x, y):
         xform = self.dataTransform()
-        if xform is None:
-            return x
-        else:
-            return xform.map(x)
+        if xform is not None:
+            xformed = np.column_stack((x, y))
+            ret = xform.map(xformed)
+            x = ret[..., 0]
+            y = ret[..., 1]
+        return x, y
 
-    def mapFromItemToData(self, x):
+    def mapFromItemToData(self, x, y):
         xform = self.dataTransform()
-        if xform is None:
-            return x
-        else:
-            return xform.imap(x)
+        if xform is not None:
+            xformed = np.column_stack((x, y))
+            ret = xform.imap(xformed)
+            x = ret[..., 0]
+            y = ret[..., 1]
+        return x, y
 
     def getViewWidget(self):
         """
