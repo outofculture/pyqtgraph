@@ -421,10 +421,7 @@ class PlotDataItem(GraphicsObject):
         if self.opts['fftMode'] == state:
             return
         self.opts['fftMode'] = state
-        self._datasetMapped  = None
-        self._datasetDisplay = None
-        self.updateItems(styleUpdate=False)
-        self.informViewBoundsChanged()
+        self.recalculateDisplay()
 
     def setLogMode(self, xState, yState):
         """
@@ -436,10 +433,7 @@ class PlotDataItem(GraphicsObject):
         if self.opts['logMode'] == [xState, yState]:
             return
         self.opts['logMode'] = [xState, yState]
-        self._datasetMapped  = None  # invalidate mapped data
-        self._datasetDisplay = None  # invalidate display data
-        self.updateItems(styleUpdate=False)
-        self.informViewBoundsChanged()
+        self.recalculateDisplay()
 
     def setDerivativeMode(self, state):
         """
@@ -450,10 +444,7 @@ class PlotDataItem(GraphicsObject):
         if self.opts['derivativeMode'] == state:
             return
         self.opts['derivativeMode'] = state
-        self._datasetMapped  = None  # invalidate mapped data
-        self._datasetDisplay = None  # invalidate display data
-        self.updateItems(styleUpdate=False)
-        self.informViewBoundsChanged()
+        self.recalculateDisplay()
 
     def setPhasemapMode(self, state):
         """
@@ -465,10 +456,7 @@ class PlotDataItem(GraphicsObject):
         if self.opts['phasemapMode'] == state:
             return
         self.opts['phasemapMode'] = state
-        self._datasetMapped  = None  # invalidate mapped data
-        self._datasetDisplay = None  # invalidate display data
-        self.updateItems(styleUpdate=False)
-        self.informViewBoundsChanged()
+        self.recalculateDisplay()
 
     def setPen(self, *args, **kargs):
         """
@@ -611,9 +599,7 @@ class PlotDataItem(GraphicsObject):
                 self.opts['downsampleMethod'] = method
 
         if changed:
-            self._datasetMapped  = None  # invalidata mapped data
-            self._datasetDisplay = None  # invalidate display data
-            self.updateItems(styleUpdate=False)
+            self.recalculateDisplay(viewBoundsChanged=False)
 
     def setClipToView(self, state):
         """
@@ -623,8 +609,7 @@ class PlotDataItem(GraphicsObject):
         if self.opts['clipToView'] == state:
             return
         self.opts['clipToView'] = state
-        self._datasetDisplay = None  # invalidate display data
-        self.updateItems(styleUpdate=False)
+        self.recalculateDisplay(invalidateDataTransform=False, viewBoundsChanged=False)
 
     def setDynamicRangeLimit(self, limit=1e06, hysteresis=3.):
         """
@@ -652,10 +637,8 @@ class PlotDataItem(GraphicsObject):
         if limit == self.opts['dynamicRangeLimit']:
             return # avoid update if there is no change
         self.opts['dynamicRangeLimit'] = limit # can be None
-        self._datasetDisplay = None  # invalidate display data
+        self.recalculateDisplay(invalidateDataTransform=False, viewBoundsChanged=False)
 
-        self.updateItems(styleUpdate=False)
-        
     def setSkipFiniteCheck(self, skipFiniteCheck):
         """
         When it is known that the plot data passed to ``PlotDataItem`` contains only finite numerical values,
@@ -811,12 +794,10 @@ class PlotDataItem(GraphicsObject):
             self._dataset = None
         else:
             self._dataset = PlotDataset( xData, yData )
-        self._datasetMapped  = None  # invalidata mapped data , will be generated in getData() / _getDisplayDataset()
-        self._datasetDisplay = None  # invalidate display data, will be generated in getData() / _getDisplayDataset()
 
         profiler('set data')
 
-        self.updateItems( styleUpdate = self.property('styleWasChanged') )
+        self.recalculateDisplay(styleUpdate=self.property('styleWasChanged'), viewBoundsChanged=False)
         self.setProperty('styleWasChanged', False) # items have been updated
         profiler('update items')
 
@@ -908,11 +889,14 @@ class PlotDataItem(GraphicsObject):
                 return (None, None)
             return dataset.x, dataset.y
 
-    def recalculateDisplay(self):
+    def recalculateDisplay(self, invalidateDataTransform=True, viewBoundsChanged=True, styleUpdate=False):
         """Invalidates the display data cache and re-renders itself."""
+        if invalidateDataTransform:
+            self._datasetMapped = None
         self._datasetDisplay = None
-        self._datasetMapped = None
-        self.updateItems()
+        self.updateItems(styleUpdate=styleUpdate)
+        if viewBoundsChanged:
+            self.informViewBoundsChanged()
 
     def _getDisplayDataset(self):
         """
