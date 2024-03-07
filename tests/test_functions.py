@@ -6,8 +6,8 @@ import pytest
 from numpy.testing import assert_array_almost_equal
 
 import pyqtgraph as pg
-from pyqtgraph.functions import arrayToQPath, eq
-from pyqtgraph.Qt import QtGui
+from pyqtgraph.functions import arrayToQPath, eq, SignalBlock
+from pyqtgraph.Qt import QtCore, QtGui
 
 np.random.seed(12345)
 
@@ -283,7 +283,7 @@ def _handle_underflow(dtype, *elements):
         for ii in range(1, 3):
             coord = el[ii]
             if coord < 0:
-                coord = np.array(coord, dtype=dtype)
+                coord = np.array(coord).astype(dtype=dtype)
             newElement.append(float(coord))
         out.append(tuple(newElement))
     return out
@@ -409,3 +409,65 @@ def test_ndarray_from_qimage():
 def test_colorDistance():
     pg.colorDistance([pg.Qt.QtGui.QColor(0,0,0), pg.Qt.QtGui.QColor(255,0,0)])
     pg.colorDistance([])
+
+
+@pytest.mark.parametrize(
+    "test_input,expected",
+    [
+        (["r"], [255, 0, 0, 255]),
+        (["g"], [0, 255, 0, 255]),
+        (["b"], [0, 0, 255, 255]),
+        (["c"], [0, 255, 255, 255]),
+        (["m"], [255, 0, 255, 255]),
+        (["y"], [255, 255, 0, 255]),
+        (["k"], [0, 0, 0, 255]),
+        (["w"], [255, 255, 255, 255]),
+        (["d"], [150, 150, 150, 255]),
+        (["l"], [200, 200, 200, 255]),
+        (["s"], [100, 100, 150, 255]),
+        ([0.75], [191, 191, 191, 255]),
+        ([11, 22, 33], [11, 22, 33, 255]),
+        ([11, 22, 33, 44], [11, 22, 33, 44]),
+        ([(11, 22, 33)], [11, 22, 33, 255]),
+        ([(11, 22, 33, 44)], [11, 22, 33, 44]),
+        ([0], [255, 0, 0, 255]),
+        ([1], [255, 170, 0, 255]),
+        ([2], [170, 255, 0, 255]),
+        ([3], [0, 255, 0, 255]),
+        ([4], [0, 255, 170, 255]),
+        ([5], [0, 170, 255, 255]),
+        ([9], [255, 0, 0, 255]),
+        ([(0, 2)], [255, 0, 0, 255]),
+        ([(1, 2)], [0, 255, 255, 255]),
+        ([(2, 2)], [255, 0, 0, 255]),
+        (["#89a"], [136, 153, 170, 255]),
+        (["#89ab"], [136, 153, 170, 187]),
+        (["#4488cc"], [68, 136, 204, 255]),
+        (["#4488cc00"], [68, 136, 204, 0]),
+        ([QtGui.QColor(1, 2, 3, 4)], [1, 2, 3, 4]),
+        (["steelblue"], [70, 130, 180, 255]),
+        (["lawngreen"], [124, 252, 0, 255]),
+    ],
+)
+def test_mkColor(test_input, expected):
+    qcol: QtGui.QColor = pg.functions.mkColor(*test_input)
+    assert list(qcol.getRgb()) == expected
+
+def test_signal_block_unconnected():
+    """Test that SignalBlock does not end up connecting an unconnected slot"""
+    class Sender(QtCore.QObject):
+        signal = QtCore.Signal()
+
+    class Receiver:
+        def __init__(self):
+            self.counter = 0
+
+        def slot(self):
+            self.counter += 1
+
+    sender = Sender()
+    receiver = Receiver()
+    with SignalBlock(sender.signal, receiver.slot):
+        pass
+    sender.signal.emit()
+    assert receiver.counter == 0
