@@ -151,7 +151,7 @@ def parseString(lines, start=0, **scope):
             if ':' not in l:
                 raise ParseError('Missing colon', ln + 1, l)
 
-            (k, p, v) = l.partition(':')
+            k, _, v = l.partition(':')
             k = k.strip()
             v = v.strip()
 
