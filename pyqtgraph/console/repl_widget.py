@@ -100,10 +100,6 @@ class ReplWidget(QtWidgets.QWidget):
         self.input.setFocus()
         self.sigCommandRaisedException.emit(self, exc)
 
-    def handleException(self, exc):
-        self.input.setEnabled(True)
-        self.sigCommandRaisedException.emit(self, exc)
-
     def write(self, strn, style='output', scrollToBottom='auto'):
         """Write a string into the console.
 
