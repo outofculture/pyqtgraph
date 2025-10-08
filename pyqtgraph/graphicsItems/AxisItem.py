@@ -16,10 +16,10 @@ __all__ = ['AxisItem']
 class AxisItem(GraphicsWidget):
     """
     GraphicsItem showing a single plot axis with ticks, values, and label.
-    
+
     Can be configured to fit on any side of a plot, automatically synchronize its
     displayed scale with ViewBox items. Ticks can be extended to draw a grid.
-    
+
     If maxTickLength is negative, ticks point into the plot.
 
     Parameters
@@ -99,6 +99,10 @@ class AxisItem(GraphicsWidget):
         self.textWidth = 30  ## Keeps track of maximum width / height of tick text
         self.textHeight = 18
 
+        # reuse Point objects when calculating ticks
+        self._pointPool = [Point(0, 0) for _ in range(200)]
+        self._pointPoolIndex = 0
+
         # If the user specifies a width / height, remember that setting
         # indefinitely.
         self.fixedWidth = None
@@ -162,7 +166,7 @@ class AxisItem(GraphicsWidget):
                                   The maximum length of ticks in pixels. Positive values
                                   point toward the text; negative values point away.
 
-            tickTextOffset        ``int`` 
+            tickTextOffset        ``int``
                                   Reserved spacing between text and axis in pixels.
 
             tickTextWidth         ``int``
@@ -193,8 +197,8 @@ class AxisItem(GraphicsWidget):
             tickFont              :class:`QFont` or ``None``
                                   Determines the font used for tick values. Use None for
                                   the default font.
-            
-            stopAxisAtTick        tuple of ``bool, bool`` 
+
+            stopAxisAtTick        tuple of ``bool, bool``
                                   The first element represents the horizontal axis, the
                                   second element represents the vertical axis.
 
@@ -211,7 +215,7 @@ class AxisItem(GraphicsWidget):
                                   tuple in the list specifies what fraction of the axis
                                   length may be occupied by text, given the number of
                                   ticks that already have text displayed.
-                                  
+
                                   For example ::
 
                                     [
@@ -219,19 +223,19 @@ class AxisItem(GraphicsWidget):
                                         (0, 0.8),
                                         # If we already have 2 ticks with text, fill no
                                         # more than 60% of the axis
-                                        (2, 0.6), 
+                                        (2, 0.6),
                                         # If we already have 4 ticks with text, fill no
                                         # more than 40% of the axis
-                                        (4, 0.4), 
+                                        (4, 0.4),
                                         # If we already have 6 ticks with text, fill no
                                         # more than 20% of the axis
                                         (6, 0.2)
                                     ]
-                                                
+
             showValues            ``bool``
                                   indicates whether text is displayed adjacent to ticks.
-            
-            tickAlpha             ``float``, ``int`` or ``None`` 
+
+            tickAlpha             ``float``, ``int`` or ``None``
                                   If ``None``, pyqtgraph will draw the ticks with the
                                   alpha it deems appropriate. Otherwise, the alpha will
                                   be fixed at the value passed. With ``int``, accepted
@@ -266,7 +270,7 @@ class AxisItem(GraphicsWidget):
                     'tickTextOffset',
                     'tickTextWidth',
                     'tickTextHeight'
-                ) and 
+                ) and
                 not isinstance(value, int)
             ):
                 raise TypeError(f"Argument '{kwd}' must be int")
@@ -305,7 +309,7 @@ class AxisItem(GraphicsWidget):
         ----------
         grid : bool or int or float
             Alpha value to apply to :class:`~pyqtgraph.GridItem`.
-            
+
             - ``False`` - Disable the grid.
             - ``int`` - Values between [0, 255] to set the alpha of the grid to.
             - ``float`` - Values between [0..1] to set the alpha of the grid to.
@@ -380,7 +384,7 @@ class AxisItem(GraphicsWidget):
     def setTickFont(self, font: QtGui.QFont | None):
         """
         Set the font used for tick values.
-        
+
         Parameters
         ----------
         font : QtGui.QFont or None
@@ -508,7 +512,7 @@ class AxisItem(GraphicsWidget):
             A tuple of ranges where SI prefix scaling is enabled. Each range is a tuple
             containing two floats representing the start and end of the range. If no
             custom ranges are set, then the default ranges are returned. The default
-            ranges are ``((0., 1.), (1e9, inf))`` if units are empty, and 
+            ranges are ``((0., 1.), (1e9, inf))`` if units are empty, and
             ``((0., inf))`` otherwise.
         """
         if self._siPrefixEnableRanges is not None:
@@ -626,7 +630,7 @@ class AxisItem(GraphicsWidget):
         w : int or None, optional
             If ``None``, then the value will be determined automatically based on the
             size of the tick text, by default None.
-        """        
+        """
         self.fixedWidth = w
         self._updateWidth()
 
@@ -670,7 +674,7 @@ class AxisItem(GraphicsWidget):
     def setPen(self, *args, **kwargs):
         """
         Set the pen used for drawing text, axes, ticks, and grid lines.
-        
+
         If no arguments given, the default foreground color will be used.
 
         Parameters
@@ -684,7 +688,7 @@ class AxisItem(GraphicsWidget):
         --------
         :func:`setConfigOption <pyqtgraph.setConfigOption>`
             Option to change the default foreground color.
-        """        
+        """
         self.picture = None
         if args or kwargs:
             self._pen = fn.mkPen(*args, **kwargs)
@@ -714,7 +718,7 @@ class AxisItem(GraphicsWidget):
         Set the pen used for drawing text.
 
         If no arguments given, the default foreground color will be used.
-        
+
         Parameters
         ----------
         *args : tuple
@@ -726,7 +730,7 @@ class AxisItem(GraphicsWidget):
         --------
         :func:`setConfigOption <pyqtgraph.setConfigOption>`
             Option to change the default foreground color.
-        """     
+        """
         self.picture = None
         if args or kwargs:
             self._textPen = fn.mkPen(*args, **kwargs)
@@ -754,7 +758,7 @@ class AxisItem(GraphicsWidget):
         Set the pen used for drawing ticks.
 
         If no arguments given, the default foreground color will be used.
-        
+
         Parameters
         ----------
         *args : tuple
@@ -766,7 +770,7 @@ class AxisItem(GraphicsWidget):
         --------
         :func:`setConfigOption <pyqtgraph.setConfigOption>`
             Option to change the default foreground color.
-        """   
+        """
         self.picture = None
         self._tickPen = fn.mkPen(*args, **kwargs) if args or kwargs else None
         self._updateLabel()
@@ -947,7 +951,7 @@ class AxisItem(GraphicsWidget):
         linkedView = self.linkedView()
         if linkedView is not None and self.grid is not False:
             return (
-                self.mapRectFromParent(self.geometry()) | 
+                self.mapRectFromParent(self.geometry()) |
                 linkedView.mapRectToItem(self, linkedView.boundingRect())
             )
         rect = self.mapRectFromParent(self.geometry())
@@ -1018,7 +1022,7 @@ class AxisItem(GraphicsWidget):
         This overrides the behavior specified by
         :meth:`~pyqtgraph.AxisItem.tickSpacing`, :meth:`~pyqtgraph.AxisItem.tickValues`,
         and :meth:`~pyqtgraph.AxisItem.tickStrings`.
-        
+
         The format for *ticks* looks like::
 
             [
@@ -1034,7 +1038,7 @@ class AxisItem(GraphicsWidget):
                 ],
                 ...
             ]
-        
+
         The two levels of major and minor ticks are expected. A third tier of additional
         ticks is optional. If *ticks* is ``None``, then the default tick system will be
         used.
@@ -1043,7 +1047,7 @@ class AxisItem(GraphicsWidget):
         ----------
         ticks : list of list of float, str or None
             Explicitly set tick display information.
-        
+
         See Also
         --------
         :meth:`~pyqtgraph.AxisItem.tickSpacing`
@@ -1052,7 +1056,7 @@ class AxisItem(GraphicsWidget):
             How tick values are set.
         :meth:`~pyqtgraph.AxisItem.tickStrings`
             How tick strings are specified.
-        """        
+        """
 
         self._tickLevels = ticks
         self.picture = None
@@ -1122,7 +1126,7 @@ class AxisItem(GraphicsWidget):
             A list of tuples, one for each tick level.
             Each tuple contains two values: ``(spacing, offset)``.  The spacing value
             is the distance between ticks, and the offset is the first tick relative to
-            *minVal*. For example, if ``result[0]`` is ``(10, 0)``, then major ticks 
+            *minVal*. For example, if ``result[0]`` is ``(10, 0)``, then major ticks
             will be displayed every 10 units and the first major tick will correspond to
             ``minVal``. If instead ``result[0]`` is ``(10, 5)``, then major ticks will
             be displayed every 10 units, but the first major tick will correspond to
@@ -1394,6 +1398,9 @@ class AxisItem(GraphicsWidget):
                 dstrings.append(e)
         return dstrings
 
+    def _resetPointPoolIndex(self):
+        self._pointPoolIndex = 0
+
     def generateDrawSpecs(self, p):
         """
         Generate the drawing specifications for the axis, ticks, and labels.
@@ -1420,10 +1427,11 @@ class AxisItem(GraphicsWidget):
               the pen, start point, and end point of the tick line.
             - ``textSpecs``: A list of tuples, one for each tick label. Each tuple
               contains the bounding rectangle, alignment flags, and text of the label.
-        
+
         :meta private:
         """
         profiler = debug.Profiler()
+        self._resetPointPoolIndex()
         if self.style['tickFont'] is not None:
             p.setFont(self.style['tickFont'])
         bounds = self.mapRectFromParent(self.geometry())
@@ -1439,29 +1447,29 @@ class AxisItem(GraphicsWidget):
         top_offset = -1.0
         bottom_offset = 1.0
         if self.orientation == 'left':
-            span = (bounds.topRight() + Point(left_offset, top_offset),
-                    bounds.bottomRight() + Point(left_offset, bottom_offset))
+            span = (bounds.topRight() + self._nextPointFromPool(left_offset, top_offset),
+                    bounds.bottomRight() + self._nextPointFromPool(left_offset, bottom_offset))
             tickStart = tickBounds.right()
             tickStop = bounds.right()
             tickDir = -1
             axis = 0
         elif self.orientation == 'right':
-            span = (bounds.topLeft() + Point(right_offset, top_offset),
-                    bounds.bottomLeft() + Point(right_offset, bottom_offset))
+            span = (bounds.topLeft() + self._nextPointFromPool(right_offset, top_offset),
+                    bounds.bottomLeft() + self._nextPointFromPool(right_offset, bottom_offset))
             tickStart = tickBounds.left()
             tickStop = bounds.left()
             tickDir = 1
             axis = 0
         elif self.orientation == 'top':
-            span = (bounds.bottomLeft() + Point(left_offset, top_offset),
-                    bounds.bottomRight() + Point(right_offset, top_offset))
+            span = (bounds.bottomLeft() + self._nextPointFromPool(left_offset, top_offset),
+                    bounds.bottomRight() + self._nextPointFromPool(right_offset, top_offset))
             tickStart = tickBounds.bottom()
             tickStop = bounds.bottom()
             tickDir = -1
             axis = 1
         elif self.orientation == 'bottom':
-            span = (bounds.topLeft() + Point(left_offset, bottom_offset),
-                    bounds.topRight() + Point(right_offset, bottom_offset))
+            span = (bounds.topLeft() + self._nextPointFromPool(left_offset, bottom_offset),
+                    bounds.topRight() + self._nextPointFromPool(right_offset, bottom_offset))
             tickStart = tickBounds.top()
             tickStop = bounds.top()
             tickDir = 1
@@ -1474,7 +1482,7 @@ class AxisItem(GraphicsWidget):
         points = list(map(self.mapToDevice, span))
         if None in points:
             return
-        lengthInPixels = Point(points[1] - points[0]).length()
+        lengthInPixels = self._nextPointFromPool(points[1] - points[0]).length()
         if lengthInPixels == 0:
             return
 
@@ -1554,15 +1562,17 @@ class AxisItem(GraphicsWidget):
                     continue
                 tickPositions[i].append(x)
 
-                p1 = [x, x]
-                p2 = [x, x]
-                p1[axis] = tickStart
-                p2[axis] = tickStop
-                if self.grid is False:
-                    p2[axis] += tickLength*tickDir
-                tickSpecs.append((tickPen, Point(p1), Point(p2)))
-        profiler('compute ticks')
+                p1 = self._nextPointFromPool(
+                    x if axis == 1 else tickStart,
+                    x if axis == 0 else tickStart,
+                )
+                p2 = self._nextPointFromPool(
+                    x if axis == 1 else tickStop + (tickLength * tickDir if self.grid is False else 0),
+                    x if axis == 0 else tickStop + (tickLength * tickDir if self.grid is False else 0),
+                )
 
+                tickSpecs.append((tickPen, p1, p2))
+        profiler('compute ticks')
 
         if self.style['stopAxisAtTick'][0] is True:
             minTickPosition = min(map(min, tickPositions))
@@ -1689,6 +1699,18 @@ class AxisItem(GraphicsWidget):
         self._updateMaxTextSize(lastTextSize2)
 
         return axisSpec, tickSpecs, textSpecs
+
+    def _nextPointFromPool(self, x_or_pt, y=None) -> Point:
+        if y is None:
+            y = x_or_pt.y()
+            x_or_pt = x_or_pt.x()
+        self._pointPoolIndex += 1
+        if self._pointPoolIndex > len(self._pointPool):
+            self._pointPool.append(Point(0, 0))
+        pt = self._pointPool[self._pointPoolIndex - 1]
+        pt.setX(x_or_pt)
+        pt.setY(y)
+        return pt
 
     def drawPicture(self, p, axisSpec, tickSpecs, textSpecs):
         profiler = debug.Profiler()
