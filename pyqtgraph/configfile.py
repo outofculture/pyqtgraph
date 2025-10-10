@@ -67,6 +67,7 @@ def readConfigFile(fname, **scope):
         'QtCore': QtCore,
         'ColorMap': ColorMap,
         'datetime': datetime,
+        'np': numpy,
         # Needed for reconstructing numpy arrays
         'array': numpy.array,
     }
