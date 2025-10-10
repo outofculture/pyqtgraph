@@ -59,7 +59,7 @@ def readConfigFile(fname, **scope):
 
     GLOBAL_PATH = os.path.dirname(os.path.abspath(fname))
 
-    local = {**scope, **units.allUnits}
+    local = {**scope, **units.allUnits, 'np': numpy}
     local['OrderedDict'] = OrderedDict
     local['readConfigFile'] = readConfigFile
     local['Point'] = Point
