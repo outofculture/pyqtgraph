@@ -19,9 +19,14 @@ class ParameterItem(QtWidgets.QTreeWidgetItem):
         QtWidgets.QTreeWidgetItem.__init__(self, [param.title(), ''])
 
         self.param = param
+        tooltip = param.opts.get('tooltip')
+        if tooltip:
+            for col in range(self.columnCount()):
+                self.setToolTip(col, tooltip)
+
         self.param.registerItem(self)  ## let parameter know this item is connected to it (for debugging)
         self.depth = depth
-        
+
         param.sigValueChanged.connect(self.valueChanged)
         param.sigChildAdded.connect(self.childAdded)
         param.sigChildRemoved.connect(self.childRemoved)
