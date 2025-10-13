@@ -1,5 +1,5 @@
 import weakref
-from math import ceil, floor, isfinite, log10, sqrt, frexp, floor
+from math import ceil, floor, frexp, isfinite, log10, sqrt
 
 import numpy as np
 
@@ -987,36 +987,36 @@ class AxisItem(GraphicsWidget):
         top_offset = -1.0
         bottom_offset = 1.0
         if self.orientation == 'left':
-            span = (bounds.topRight() + Point(left_offset, top_offset),
-                    bounds.bottomRight() + Point(left_offset, bottom_offset))
+            span = (bounds.topRight() + QtCore.QPointF(left_offset, top_offset),
+                    bounds.bottomRight() + QtCore.QPointF(left_offset, bottom_offset))
             tickStart = tickBounds.right()
             tickStop = bounds.right()
             tickDir = -1
             axis = 0
         elif self.orientation == 'right':
-            span = (bounds.topLeft() + Point(right_offset, top_offset),
-                    bounds.bottomLeft() + Point(right_offset, bottom_offset))
+            span = (bounds.topLeft() + QtCore.QPointF(right_offset, top_offset),
+                    bounds.bottomLeft() + QtCore.QPointF(right_offset, bottom_offset))
             tickStart = tickBounds.left()
             tickStop = bounds.left()
             tickDir = 1
             axis = 0
         elif self.orientation == 'top':
-            span = (bounds.bottomLeft() + Point(left_offset, top_offset),
-                    bounds.bottomRight() + Point(right_offset, top_offset))
+            span = (bounds.bottomLeft() + QtCore.QPointF(left_offset, top_offset),
+                    bounds.bottomRight() + QtCore.QPointF(right_offset, top_offset))
             tickStart = tickBounds.bottom()
             tickStop = bounds.bottom()
             tickDir = -1
             axis = 1
         elif self.orientation == 'bottom':
-            span = (bounds.topLeft() + Point(left_offset, bottom_offset),
-                    bounds.topRight() + Point(right_offset, bottom_offset))
+            span = (bounds.topLeft() + QtCore.QPointF(left_offset, bottom_offset),
+                    bounds.topRight() + QtCore.QPointF(right_offset, bottom_offset))
             tickStart = tickBounds.top()
             tickStop = bounds.top()
             tickDir = 1
             axis = 1
         else:
             raise ValueError("self.orientation must be in ('left', 'right', 'top', 'bottom')")
-        #print tickStart, tickStop, span
+        # print tickStart, tickStop, span
 
         ## determine size of this item in pixels
         points = list(map(self.mapToDevice, span))
@@ -1103,15 +1103,17 @@ class AxisItem(GraphicsWidget):
                     continue
                 tickPositions[i].append(x)
 
-                p1 = [x, x]
-                p2 = [x, x]
-                p1[axis] = tickStart
-                p2[axis] = tickStop
-                if self.grid is False:
-                    p2[axis] += tickLength*tickDir
-                tickSpecs.append((tickPen, Point(p1), Point(p2)))
-        profiler('compute ticks')
+                p1 = QtCore.QPointF(
+                    x if axis == 1 else tickStart,
+                    x if axis == 0 else tickStart,
+                )
+                p2 = QtCore.QPointF(
+                    x if axis == 1 else tickStop + (tickLength * tickDir if self.grid is False else 0),
+                    x if axis == 0 else tickStop + (tickLength * tickDir if self.grid is False else 0),
+                )
 
+                tickSpecs.append((tickPen, p1, p2))
+        profiler('compute ticks')
 
         if self.style['stopAxisAtTick'][0] is True:
             minTickPosition = min(map(min, tickPositions))
