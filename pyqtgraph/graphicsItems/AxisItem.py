@@ -1,5 +1,5 @@
 import weakref
-from math import ceil, floor, isfinite, log10, sqrt, frexp, floor
+from math import ceil, floor, frexp, isfinite, log10, sqrt
 
 import numpy as np
 
@@ -80,6 +80,10 @@ class AxisItem(GraphicsWidget):
 
         self.textWidth = 30  ## Keeps track of maximum width / height of tick text
         self.textHeight = 18
+
+        # reuse Point objects when calculating ticks
+        self._pointPool = [Point(0, 0) for _ in range(200)]
+        self._pointPoolIndex = 0
 
         # If the user specifies a width / height, remember that setting
         # indefinitely.
@@ -965,6 +969,9 @@ class AxisItem(GraphicsWidget):
                 dstrings.append(e)
         return dstrings
 
+    def _resetPointPoolIndex(self):
+        self._pointPoolIndex = 0
+
     def generateDrawSpecs(self, p):
         """
         Calls tickValues() and tickStrings() to determine where and how ticks should
@@ -972,6 +979,7 @@ class AxisItem(GraphicsWidget):
         interpreted by drawPicture().
         """
         profiler = debug.Profiler()
+        self._resetPointPoolIndex()
         if self.style['tickFont'] is not None:
             p.setFont(self.style['tickFont'])
         bounds = self.mapRectFromParent(self.geometry())
@@ -987,42 +995,42 @@ class AxisItem(GraphicsWidget):
         top_offset = -1.0
         bottom_offset = 1.0
         if self.orientation == 'left':
-            span = (bounds.topRight() + Point(left_offset, top_offset),
-                    bounds.bottomRight() + Point(left_offset, bottom_offset))
+            span = (bounds.topRight() + self._nextPointFromPool(left_offset, top_offset),
+                    bounds.bottomRight() + self._nextPointFromPool(left_offset, bottom_offset))
             tickStart = tickBounds.right()
             tickStop = bounds.right()
             tickDir = -1
             axis = 0
         elif self.orientation == 'right':
-            span = (bounds.topLeft() + Point(right_offset, top_offset),
-                    bounds.bottomLeft() + Point(right_offset, bottom_offset))
+            span = (bounds.topLeft() + self._nextPointFromPool(right_offset, top_offset),
+                    bounds.bottomLeft() + self._nextPointFromPool(right_offset, bottom_offset))
             tickStart = tickBounds.left()
             tickStop = bounds.left()
             tickDir = 1
             axis = 0
         elif self.orientation == 'top':
-            span = (bounds.bottomLeft() + Point(left_offset, top_offset),
-                    bounds.bottomRight() + Point(right_offset, top_offset))
+            span = (bounds.bottomLeft() + self._nextPointFromPool(left_offset, top_offset),
+                    bounds.bottomRight() + self._nextPointFromPool(right_offset, top_offset))
             tickStart = tickBounds.bottom()
             tickStop = bounds.bottom()
             tickDir = -1
             axis = 1
         elif self.orientation == 'bottom':
-            span = (bounds.topLeft() + Point(left_offset, bottom_offset),
-                    bounds.topRight() + Point(right_offset, bottom_offset))
+            span = (bounds.topLeft() + self._nextPointFromPool(left_offset, bottom_offset),
+                    bounds.topRight() + self._nextPointFromPool(right_offset, bottom_offset))
             tickStart = tickBounds.top()
             tickStop = bounds.top()
             tickDir = 1
             axis = 1
         else:
             raise ValueError("self.orientation must be in ('left', 'right', 'top', 'bottom')")
-        #print tickStart, tickStop, span
+        # print tickStart, tickStop, span
 
         ## determine size of this item in pixels
         points = list(map(self.mapToDevice, span))
         if None in points:
             return
-        lengthInPixels = Point(points[1] - points[0]).length()
+        lengthInPixels = self._nextPointFromPool(points[1] - points[0]).length()
         if lengthInPixels == 0:
             return
 
@@ -1103,15 +1111,17 @@ class AxisItem(GraphicsWidget):
                     continue
                 tickPositions[i].append(x)
 
-                p1 = [x, x]
-                p2 = [x, x]
-                p1[axis] = tickStart
-                p2[axis] = tickStop
-                if self.grid is False:
-                    p2[axis] += tickLength*tickDir
-                tickSpecs.append((tickPen, Point(p1), Point(p2)))
-        profiler('compute ticks')
+                p1 = self._nextPointFromPool(
+                    x if axis == 1 else tickStart,
+                    x if axis == 0 else tickStart,
+                )
+                p2 = self._nextPointFromPool(
+                    x if axis == 1 else tickStop + (tickLength * tickDir if self.grid is False else 0),
+                    x if axis == 0 else tickStop + (tickLength * tickDir if self.grid is False else 0),
+                )
 
+                tickSpecs.append((tickPen, p1, p2))
+        profiler('compute ticks')
 
         if self.style['stopAxisAtTick'][0] is True:
             minTickPosition = min(map(min, tickPositions))
@@ -1250,6 +1260,18 @@ class AxisItem(GraphicsWidget):
         self._updateMaxTextSize(lastTextSize2)
 
         return (axisSpec, tickSpecs, textSpecs)
+
+    def _nextPointFromPool(self, x_or_pt, y=None) -> Point:
+        if y is None:
+            y = x_or_pt.y()
+            x_or_pt = x_or_pt.x()
+        self._pointPoolIndex += 1
+        if self._pointPoolIndex > len(self._pointPool):
+            self._pointPool.append(Point(0, 0))
+        pt = self._pointPool[self._pointPoolIndex - 1]
+        pt.setX(x_or_pt)
+        pt.setY(y)
+        return pt
 
     def drawPicture(self, p, axisSpec, tickSpecs, textSpecs):
         profiler = debug.Profiler()
