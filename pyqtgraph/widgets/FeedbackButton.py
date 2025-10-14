@@ -21,13 +21,13 @@ class FeedbackButton(QtWidgets.QPushButton):
         self.origStyle = self.styleSheet()
         self.origTip = self.toolTip()
         self.limitedTime = True
-        
-        
-        #self.textTimer = QtCore.QTimer()
-        #self.tipTimer = QtCore.QTimer()
-        #self.textTimer.timeout.connect(self.setText)
-        #self.tipTimer.timeout.connect(self.setToolTip)
-        
+        self.setCheckable(True)
+
+        # self.textTimer = QtCore.QTimer()
+        # self.tipTimer = QtCore.QTimer()
+        # self.textTimer.timeout.connect(self.setText)
+        # self.tipTimer.timeout.connect(self.setToolTip)
+
         self.sigCallSuccess.connect(self.success)
         self.sigCallFailure.connect(self.failure)
         self.sigCallProcess.connect(self.processing)
@@ -40,23 +40,23 @@ class FeedbackButton(QtWidgets.QPushButton):
             self.success(message, tip, limitedTime=limitedTime)
         else:
             self.failure(message, tip, limitedTime=limitedTime)
-    
+
     def success(self, message=None, tip="", limitedTime=True):
         """Displays specified message on button and flashes button green to let user know action was successful. If you want the success to be displayed until the user takes an action, set limitedTime to False. Then call self.reset() after the desired action. Threadsafe."""
         isGuiThread = QtCore.QThread.currentThread() == QtCore.QCoreApplication.instance().thread()
         if isGuiThread:
             self.setEnabled(True)
-            #print "success"
+            self.setChecked(False)
             self.startBlink("#0F0", message, tip, limitedTime=limitedTime)
         else:
             self.sigCallSuccess.emit(message, tip, limitedTime)
-            
+
     def failure(self, message=None, tip="", limitedTime=True):
         """Displays specified message on button and flashes button red to let user know there was an error. If you want the error to be displayed until the user takes an action, set limitedTime to False. Then call self.reset() after the desired action. Threadsafe. """
         isGuiThread = QtCore.QThread.currentThread() == QtCore.QCoreApplication.instance().thread()
         if isGuiThread:
             self.setEnabled(True)
-            #print "fail"
+            self.setChecked(False)
             self.startBlink("#F00", message, tip, limitedTime=limitedTime)
         else:
             self.sigCallFailure.emit(message, tip, limitedTime)
@@ -66,6 +66,7 @@ class FeedbackButton(QtWidgets.QPushButton):
         isGuiThread = QtCore.QThread.currentThread() == QtCore.QCoreApplication.instance().thread()
         if isGuiThread:
             self.setEnabled(False)
+            self.setChecked(True)
             self.setText(message, temporary=True)
             self.setToolTip(tip, temporary=True)
             if processEvents:
